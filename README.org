@@ -1,0 +1,8 @@
+* Hive
+*Hive* is a scalable *Comet/PUSH application server* written in Erlang that allows you to create or integrate various Comet services into your WebApps. In supports lot's of *plugins* and can easily communicate and *seamlessly integrate into existing backends* using HTTP or TCP!
+
+* Examples
+The =examples= directory contains a simple real-time chat server written in Python/JavaScript that uses *Hive* as the backbone. It's a good indicative of what can be done using *Hive*!
+
+* Documentation
+For a user guide containing various tips on using *Hive*, please consult the =docs= directory. It contains a detailed description of various features of *Hive*.

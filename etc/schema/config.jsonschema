@@ -1,0 +1,44 @@
+{
+    "type" : "object",
+    "properties" : {
+    	"hive" : {
+	    "type" : ["object", "string"],
+	    "required" : true
+	},
+
+	"socketio" : {
+	    "type" : ["object", "string"],
+	    "required" : true
+	},
+
+	"clients" : {
+	    "type" : ["object", "string"],
+	    "required" : true
+	},
+
+	"connectors" : {
+	    "type" : ["object", "string"],
+	    "required" : true
+	},
+
+	"pubsub" : {
+	    "type" : ["object", "string"],
+	    "required" : true
+	},
+
+	"api" : {
+	    "type" : ["object", "string"],
+	    "required" : true
+	},
+
+	"monitor" : {
+	    "type" : ["object", "string"],
+	    "required" : true
+	},
+
+	"log" : {
+	    "type" : ["object", "string"],
+	    "required" : true
+	}
+    }
+}

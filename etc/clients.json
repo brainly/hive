@@ -1,0 +1,154 @@
+{
+    "state" : {
+	"state_manager" : "sm.redis",
+	
+        "initial_value" : null,
+
+	"args" : {
+	    "connector" : "database",
+	    "expiration_timeout" : 86400000
+	}
+    },
+
+    "actions" : {
+    	"stop" : [
+	    {
+		"action" : "action.stop",
+		"args" : null
+	    }
+	],
+
+	"error" : [
+	    {
+		"action" : "action.error",
+		"args" : null
+	    }
+	],
+
+	"event" : [
+	    {
+		"action" : "action.send_event",
+		"args" : null
+	    }
+	],
+
+	"store" : [
+	    {
+		"action" : "action.update_state",
+		"args" : null
+	    }
+	],
+
+	"dispatch" : [
+	    {
+		"action" : "action.dispatch",
+		"args" : null
+	    }
+	],
+
+	"add_hooks" : [
+	    {
+		"action" : "action.add_hooks",
+		"args" : null
+	    }
+	],
+
+	"remove_hooks" : [
+	    {
+		"action" : "action.remove_hooks",
+		"args" : null
+	    }
+	],
+
+	"start_connectors" : [
+	    {
+		"action" : "action.start_connectors",
+		"args" : null
+	    }
+	],
+
+	"stop_connectors" : [
+	    {
+		"action" : "action.stop_connectors",
+		"args" : null
+	    }
+	]
+    },
+
+    "hooks" : {
+	"on_connect" : [
+	    {
+		"hook" : "utils.console_dump",
+		"args" : "Connected!"
+	    }
+	],
+
+	"on_disconnect" : [
+	    {
+		"hook" : "utils.console_dump",
+		"args" : "Disconnected!"
+	    }
+	],
+
+	"on_terminate" : [
+	    {
+		"hook" : "utils.console_dump",
+		"args" : "Terminating!"
+	    },
+	    {
+		"hook" : "utils.echo",
+		"args" : {
+		    "name" : "hive_error",
+		    "args" : [
+			{
+			    "error" : "terminating",
+			    "description" : "Hive is terminating..."
+			}
+		    ]
+		}
+	    }
+	],
+
+	"ping" : [
+	    {
+		"hook" : "utils.console_dump",
+		"args" : "Pinged!"
+	    },
+	    {
+		"hook" : "utils.echo",
+		"args" : null
+	    }
+	],
+
+	"put" : [
+	    {
+		"hook" : "cp.put",
+		"args" : {
+		    "connector" : "http",
+		    "endpoint" : "/this_will_fail/"
+		}
+	    }
+	],
+	
+	"run" : [
+	    {
+		"hook" : "utils.dispatch",
+		"args" : null
+	    }
+	],
+
+	"pubsub.unsubscribe" : [
+	    {
+		"hook" : "pubsub.unsubscribe",
+		"args" : "public"
+	    }
+	],
+
+	"pubsub.subscribe" : [
+	    {
+		"hook" : "pubsub.subscribe",
+		"args" : "public"
+	    }
+	]
+    }
+}

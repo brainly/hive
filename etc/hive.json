@@ -1,0 +1,63 @@
+{
+    "hive" : {
+	"max_processes" : 15000,
+
+	"acceptors" : 100,
+        "port" : 8080,
+        "allowed_origins" : ["http://127.0.1.1", "ws://192.168.0.102", "null", "ws://localhost"],
+
+	"direct_websocket" : true,
+	"websocket_ping_timeout" : 2000,
+	
+	"graceful_termination_timeout" : 12000
+    },
+
+    "socketio" : {
+	"heartbeat_timeout" : 15000,
+	"reconnect_timeout" : 120000,
+	"poll_timeout" : 500,
+	"init_timeout" : 5000,
+	"session_timeout" : 3600000,
+	"transports" : ["websocket", "flashsocket", "xhr-polling"]
+    },
+
+    "clients" : "./clients.json",
+    "connectors" : "./connectors.json",
+
+    "pubsub" : {
+    	"channels" : {
+    	    "foo" : {
+		"privilege" : "public",
+		"timeout" : 1000
+	    },
+
+	    "bar" : {
+		"privilege" : "private",
+		"timeout" : 0
+	    },
+
+	    "baz" : {
+		"privilege" : "public",
+		"timeout" : 0
+	    }
+	}
+    },
+    
+    "api" : {
+    	"acceptors" : 100,
+	"port" : 1235,
+	"hash" : "abcde12345"
+    },
+
+    "monitor" : {
+        "acceptors" : 100,
+	"port" : 1234,
+	"hash" : "12345abcde"
+    },
+
+    "log" : {
+        "dir" : "log/hive/",
+	"console_level" : "debug",
+	"file_level" : "debug"
+    }
+}

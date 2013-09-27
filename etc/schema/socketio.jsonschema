@@ -1,0 +1,45 @@
+{
+    "type" : "object",
+    "properties" : {
+	"heartbeat_timeout" : {
+    	    "type" : "integer",
+	    "minimum" : 1000,
+	    "required" : true
+	},
+
+	"reconnect_timeout" : {
+    	    "type" : "integer",
+	    "minimum" : 1000,
+	    "required" : true
+	},
+
+	"poll_timeout" : {
+    	    "type" : "integer",
+	    "minimum" : 1,
+	    "required" : true
+	},
+	
+	"init_timeout" : {
+    	    "type" : "integer",
+	    "minimum" : 1,
+	    "required" : true
+	},
+
+	"session_timeout" : {
+    	    "type" : "integer",
+	    "minimum" : 1,
+	    "required" : true
+	},
+
+	"transports" : {
+    	    "type" : "array",
+	    "uniqueItems" : true,
+
+	    "items" : {
+		"type" : "string",
+		"enum" : ["xhr-polling", "websocket", "flashsocket"]
+	    },
+	    "required" : true
+	}
+    }
+}

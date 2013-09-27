@@ -1,0 +1,154 @@
+{
+    "state" : {
+	"state_manager" : "sm.redis",
+	
+        "initial_value" : {
+	    "nick" : null,
+	    "rooms" : []
+	},
+
+	"args" : {
+	    "connector" : "database",
+	    "expiration_timeout" : 86400000
+	}
+    },
+
+    "actions" : {
+    	"stop" : [
+	    {
+		"action" : "action.stop",
+		"args" : null
+	    }
+	],
+
+	"error" : [
+	    {
+		"action" : "action.error",
+		"args" : null
+	    }
+	],
+
+	"reply" : [
+	    {
+		"action" : "action.send_event",
+		"args" : null
+	    }
+	],
+
+	"store" : [
+	    {
+		"action" : "action.update_state",
+		"args" : null
+	    }
+	]
+    },
+
+    "hooks" : {
+	"on_connect" : [
+	    {
+		"hook" : "utils.console_dump",
+		"args" : "Connected!"
+	    }
+	],
+
+	"on_disconnect" : [
+	    {
+		"hook" : "utils.console_dump",
+		"args" : "Disconnected!"
+	    },
+	    {
+		"hook" : "cp.put",
+		"args" : {
+		    "connector" : "backend",
+		    "endpoint" : "/leave"
+		}
+	    },
+	    {
+		"hook" : "cp.put",
+		"args" : {
+		    "connector" : "backend",
+		    "endpoint" : "/cleanup"
+		}
+	    }
+	],
+
+	"on_terminate" : [
+	    {
+		"hook" : "utils.console_dump",
+		"args" : "Terminating!"
+	    },
+	    {
+		"hook" : "utils.echo",
+		"args" : {
+		    "name" : "hive_error",
+		    "args" : [
+			{
+			    "error" : "terminating",
+			    "description" : "Hive is terminating..."
+			}
+		    ]
+		}
+	    }
+	],
+
+	"authorize" : [
+	    {
+		"hook" : "cp.post",
+		"args" : {
+		    "connector" : "backend",
+		    "endpoint" : "/authorize"
+		}
+	    },
+	    {
+		"hook" : "utils.console_dump",
+		"args" : "Authorized!"
+	    }
+	],
+
+	"join_rooms" : [
+	    {
+		"hook" : "pubsub.subscribe",
+		"args" : "public"
+	    },
+	    {
+		"hook" : "cp.post",
+		"args" : {
+		    "connector" : "backend",
+		    "endpoint" : "/join"
+		}
+	    },
+	    {
+		"hook" : "utils.console_dump",
+		"args" : "Joined!"
+	    }
+	],
+
+	"publish_msg" : [
+	    {
+		"hook" : "cp.put",
+		"args" : {
+		    "connector" : "backend",
+		    "endpoint" : "/publish"
+		}
+	    }
+	],
+
+	"leave_rooms" : [
+	    {
+		"hook" : "pubsub.unsubscribe",
+		"args" : "public"
+	    },
+	    {
+		"hook" : "cp.post",
+		"args" : {
+		    "connector" : "backend",
+		    "endpoint" : "/leave"
+		}
+	    },
+	    {
+		"hook" : "utils.console_dump",
+		"args" : "Left!"
+	    }
+	]
+    }
+}

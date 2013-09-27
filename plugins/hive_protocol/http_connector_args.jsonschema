@@ -1,0 +1,19 @@
+{
+    "type" : "object",
+    "properties" : {
+    	"base_url" : {
+	    "type" : "string",
+	    "required" : true
+	},
+	"max_connection_timeout" : {
+	    "type" : "integer",
+	    "minimum" : 0,
+	    "required" : true
+	},
+	"max_connections" : {
+	    "type" : "integer",
+	    "minimum" : 0,
+	    "optional" : true
+	}
+    }
+}

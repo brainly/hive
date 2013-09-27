@@ -1,0 +1,245 @@
+{
+    "server" : {
+    	"host" : "localhost",
+	"port" : 8080,
+	"endpoint" : "/socket.io/1/",
+	"metadata" : {}
+    },
+    
+    "phases" : {
+	"bot_1" : {
+	    "users" : 1,
+	    "user_sessions" : ["ws", "xhr"],
+
+	    "start_time" : 100,
+	    "spawn_duration" : 1000
+	},
+	"bot_2" : {
+	    "users" : 1,
+	    "user_sessions" : ["ws", "xhr"],
+
+	    "start_time" : 100,
+	    "spawn_duration" : 1000
+	},
+	"bot_3" : {
+	    "users" : 1,
+	    "user_sessions" : ["ws", "xhr"],
+
+	    "start_time" : 100,
+	    "spawn_duration" : 1000
+	},
+	"bot_4" : {
+	    "users" : 1,
+	    "user_sessions" : ["ws", "xhr"],
+
+	    "start_time" : 100,
+	    "spawn_duration" : 1000
+	},
+	"bot_5" : {
+	    "users" : 1,
+	    "user_sessions" : ["ws", "xhr"],
+
+	    "start_time" : 100,
+	    "spawn_duration" : 1000
+	},
+	"bot_6" : {
+	    "users" : 1,
+	    "user_sessions" : ["ws", "xhr"],
+
+	    "start_time" : 100,
+	    "spawn_duration" : 1000
+	},
+	"bot_7" : {
+	    "users" : 1,
+	    "user_sessions" : ["ws", "xhr"],
+
+	    "start_time" : 100,
+	    "spawn_duration" : 1000
+	},
+	"bot_8" : {
+	    "users" : 1,
+	    "user_sessions" : ["ws", "xhr"],
+
+	    "start_time" : 100,
+	    "spawn_duration" : 1000
+	},
+	"bot_9" : {
+	    "users" : 1,
+	    "user_sessions" : ["ws", "xhr"],
+
+	    "start_time" : 100,
+	    "spawn_duration" : 1000
+	},
+	"bot_0" : {
+	    "users" : 1,
+	    "user_sessions" : ["ws", "xhr"],
+
+	    "start_time" : 100,
+	    "spawn_duration" : 1000
+	}
+    },
+    
+    "sessions" : {
+	"debug" : {
+	    "do" : [
+		["on_event", {
+		    "hive_error" : [
+			["inc", "hive_errors"],
+			["log", {
+			    "format" : "Bot ~s got a Hive error: ~s.",
+			    "values" : ["$phase.name", "$event"]
+			}]
+		    ]
+		}]
+	    ]
+	},
+
+	"auth" : {
+	    "extends" : ["debug"],
+
+	    "metadata" : {
+	    	"auth_timeout" : 5000
+	    },
+	    
+	    "do" : [
+	    	["on_socketio", {
+		    "1" : [
+			["log", {
+			    "format" : "Bot ~s connected via ~s!",
+			    "values" : ["$phase.name", "$session.transport"]
+			}],
+
+			["start_timer", "auth_time", "$auth_timeout"],
+			["emit_event", {
+			    "name" : "authorize",
+			    "args" : [
+			    	{
+				    "nick" : "$phase.name"
+				}
+			    ]
+			}]
+		    ]
+		}],
+
+		["on_event", {
+		    "authorize" : [
+			["stop_timer", "auth_time"],
+
+			["match", {
+			    "subject" : "$event.args",
+			    "json" : [
+				{
+				    "permission" : "granted"
+				}
+			    ],
+
+			    "on_match" : [
+				["inc", "authorized"]
+			    ],
+
+			    "on_nomatch" : [
+				["inc", "forbidden"],
+				["terminate", "Failed to authorize!"]
+			    ]
+			}]
+		    ]
+		}],
+		
+		["on_timeout", {
+		    "auth_time" : [
+			["inc", "failed"],
+			["log", {
+			    "format" : "Authorization failed for ~s!",
+			    "values" : ["$phase.name"]
+			}],
+			["terminate", "Failed to authorize!"]
+		    ]
+		}]
+	    ]
+	},
+
+	"bot" : {
+	    "extends" : ["auth"],
+
+	    "do" : [
+	    	["on_event", {
+		    "authorize" : [
+			["inc", "bots"],
+			["emit_event", {
+			    "name" : "join_rooms",
+			    "args" : [
+				{
+				    "rooms" : ["main", "$phase.name"]
+				}
+			    ]
+			}]
+		    ],
+
+		    "msg_published" : [
+			["inc", "msgs"],
+			["log", "Bot ~s got a message: ~s", ["$phase.name", "$event"]],
+
+			["match", {
+			    "subject" : "$event.args",
+			    "json" : [
+				{
+				    "channel" : "$channel",
+				    "text" : "$operation"
+				}
+			    ],
+
+			    "on_match" : [
+				["log", "Bot ~s is performing ~s on channel ~s", ["$phase.name", "$operation", "$channel"]],
+			        ["case", "$operation", {
+				    "ping" : [
+					["emit_event", {
+					    "name" : "publish_msg",
+					    "args" : [
+						{
+						    "channel" : "$channel",
+						    "text" : "pong"
+						}
+					    ]
+					}]
+				    ],
+
+				    "sid" : [
+					["emit_event", {
+					    "name" : "publish_msg",
+					    "args" : [
+						{
+						    "channel" : "$channel",
+						    "text" : "$server.sid"
+						}
+					    ]
+					}]
+				    ],
+				    
+				    "terminate" : [
+					["terminate", "Killed!"]
+				    ]
+				}]
+			    ]
+			}]
+		    ]
+		}]
+	    ]
+	},
+
+	"ws" : {
+	    "extends" : ["bot"],
+	    "transport" : "websocket",
+	    "weight" : 0.8,
+	    "metadata" : {},
+	    "do" : []
+	},
+
+	"xhr" : {
+	    "extends" : ["bot"],
+	    "transport" : "xhr-polling",
+	    "weight" : 0.2,
+	    "metadata" : {},
+	    "do" : []
+	}
+    }
+}

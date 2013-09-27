@@ -1,0 +1,7 @@
+
+# /
+/log
+/*.dump
+/ebin
+/deps
+/.eunit

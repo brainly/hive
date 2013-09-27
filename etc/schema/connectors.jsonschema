@@ -1,0 +1,46 @@
+{
+    "type" : "object",
+    "properties" : {
+    	"rent_timeout" : {
+	    "type" : "integer",
+	    "minimum" : 1,
+	    "required" : true
+	},
+
+	"pools" : {
+	    "type" : "object",
+
+	    "patternProperties" : {
+		".+" : {
+		    "id" : "connector",
+	    	    "type" : "object",
+		    "properties" : {
+			
+			"connector" : {
+		    	    "type" : "string",
+			    "required" : true
+			},
+
+			"size" : {
+		    	    "type" : "integer",
+			    "minimum" : 0,
+			    "required" : true
+			},
+
+			"overflow" : {
+		    	    "type" : "integer",
+			    "minimum" : 0,
+			    "required" : true
+			},
+
+			"args" : {
+		    	    "type" : "any",
+			    "required" : true
+			}
+		    }
+		}
+	    },
+	    "required" : true
+	}
+    }
+}

@@ -1,0 +1,29 @@
+{
+    "type" : "object",
+    "properties" : {
+	"channels" : {
+	    "type" : "object",
+	    "patternProperties" : {
+	    	".+" : {
+		    "id" : "pubsub_channel",
+		    "type" : "object",
+		    "properties" : {
+	    		"privilege" : {
+		    	    "type" : "string",
+			    "enum" : ["private", "public"],
+			    "required" : true
+			},
+
+		        "timeout" : {
+			    "type" : "integer",
+			    "minimum" : 0,
+			    "required" : true
+			}
+		    }
+		}
+	    },
+	    
+	    "required" : true
+	}
+    }
+}

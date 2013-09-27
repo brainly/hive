@@ -1,0 +1,21 @@
+{
+    "type" : "object",
+    "properties" : {
+    	"dir" : {
+	    "type" : "string",
+	    "required" : true
+	},
+
+	"file_level" : {
+	    "type" : "string",
+	    "enum" : ["debug", "info", "notice", "warning", "error", "critical", "alert", "emergency", "none"],
+	    "required" : true
+	},
+
+	"console_level" : {
+	    "type" : "string",
+	    "enum" : ["debug", "info", "notice", "warning", "error", "critical", "alert", "emergency", "none"],
+	    "required" : true
+	}
+    }
+}

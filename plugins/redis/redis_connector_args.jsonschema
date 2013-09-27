@@ -1,0 +1,40 @@
+{
+    "type" : "object",
+    "properties" : {
+    	"host" : {
+	    "type" : "string",
+	    "required" : true
+	},
+	"port" : {
+	    "type" : "integer",
+	    "minimum" : 0,
+	    "maximum" : 65535,
+	    "required" : true
+	},
+	"database" : {
+	    "type" : "integer",
+	    "minimum" : 0,
+	    "required" : true
+	},
+	"password" : {
+	    "type" : "string",
+	    "required" : true
+	},
+	"restart_timeout" : {
+	    "type" : "integer",
+	    "minimum" : 0,
+	    "required" : true
+	},
+	"reconnect_timeout" : {
+	    "type" : "integer",
+	    "minimum" : 0,
+	    "required" : true
+	},
+	"max_reconnect_timeout" : {
+	    "type" : "integer",
+	    "minimum" : 0,
+	    "optional" : true,
+	    "default" : 5000
+	}
+    }
+}

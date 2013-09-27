@@ -1,0 +1,78 @@
+{
+    "type" : "object",
+    "properties" : {
+    	"state" : {
+	    "type" : "object",
+	    "properties" : {
+		"id" : "state_manager",
+		"type" : "object",
+		
+		"state_manager" : {
+		    "type" : "string",
+		    "required" : true
+		},
+
+	    	"initial_value" : {
+		    "type" : "any",
+		    "required" : true
+		},
+
+		"args" : {
+		    "type" : "any",
+		    "required" : true
+		}
+	    },
+	    "required" : true
+	},
+
+	"actions" : {
+	    "type" : "object",
+	    "patternProperties" : {
+		".+" : {
+		    "type" : "array",
+		    "items" : {
+			"id" : "action",
+			"type" : "object",
+			"properties" : {
+		    	    "action" : {
+				"type" : "string",
+				"required" : true
+			    },
+
+			    "args" : {
+				"type" : "any",
+				"required" : true
+			    }
+			}
+		    }
+		}
+	    },
+	    "required" : true
+	},
+
+	"hooks" : {
+	    "type" : "object",
+	    "patternProperties" : {
+		".+" : {
+		    "type" : "array",
+		    "items" : {
+			"id" : "hook",
+			"type" : "object",
+			"properties" : {
+			    "hook" : {
+				"type" : "string",
+				"required" : true
+			    },
+
+			    "args" : {
+				"type" : "any",
+				"required" : true
+			    }
+			}
+		    }
+		}
+	    },
+	    "required" : true
+	}
+    }
+}

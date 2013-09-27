@@ -1,0 +1,23 @@
+{
+    "type" : "object",
+    "properties" : {
+	"acceptors" : {
+	    "type" : "integer",
+	    "minimum" : 1,
+	    "required" : true
+	},
+
+	"port" : {
+	    "type" : "integer",
+	    "minimum" : 0,
+	    "maximum" : 65535,
+	    "required" : true
+	},
+
+	"hash" : {
+	    "type" : "string",
+	    "minLength" : 8,
+	    "required" : true
+	}
+    }
+}
