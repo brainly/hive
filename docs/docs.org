@@ -376,10 +376,10 @@ Required parameters:
 
 - =hive.port= - the port on which Hive will listen for incoming connections. It has to be *a non-negative integer lower than 65536*.
 
-- =hive.allowed_origins= - a JavaScript array of the origins that are allowed to access Hive services. Has to be *an array of strings*, each of which names a single origin - *a URL* (possibly with wildcards) or the special value "null". Some examples:
+- =hive.allowed_origins= - a JavaScript array of the origins that are allowed to access Hive services. Has to be *an array of strings*, each of which names a single origin - *a URL* (possibly with wildcards) or the special value =null= (equivalent to an undefined origin). Some examples:
 
 #+begin_src javascript
-"null", "*.*", "http://zadane.pl"
+null, "null", "*.*", "http://zadane.pl"
 #+end_src
 
 # <<<ref:graceful_config>>>

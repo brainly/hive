@@ -1,4 +1,4 @@
-% Created 2013-09-27 pią 16:15
+% Created 2013-11-06 śro 21:03
 \documentclass[a4paper]{article}
 \usepackage{fontspec}
 \usepackage{fixltx2e}
@@ -458,12 +458,12 @@ Required parameters:
 \begin{itemize}
 \item \texttt{hive.acceptors} - the number of HTTP acceptors that receive and prepare HTTP connections. It is in no way related to the maximum number of connections. This has to be \textbf{a positive integer}.
 \item \texttt{hive.port} - the port on which Hive will listen for incoming connections. It has to be \textbf{a non-negative integer lower than 65536}.
-\item \texttt{hive.allowed\_origins} - a JavaScript array of the origins that are allowed to access Hive services. Has to be \textbf{an array of strings}, each of which names a single origin - \textbf{a URL} (possibly with wildcards) or the special value ``null''. Some examples:
+\item \texttt{hive.allowed\_origins} - a JavaScript array of the origins that are allowed to access Hive services. Has to be \textbf{an array of strings}, each of which names a single origin - \textbf{a URL} (possibly with wildcards) or the special value \texttt{null} (equivalent to an undefined origin). Some examples:
 \end{itemize}
 
 
 \begin{minted}[]{javascript}
-"null", "*.*", "http://zadane.pl"
+null, "null", "*.*", "http://zadane.pl"
 \end{minted}
 
 
