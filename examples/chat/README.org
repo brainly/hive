@@ -374,16 +374,14 @@ The JavaScript frontent isn't really that much interesting, it's just a bunch of
 
 * Let's chat!
 ** Running the chat server
-We're almost ready to start chatting! All we need to do is run this thing... But before you run your terminal emulator, make sure to grab an instance of a [[https://github.com/LearnBoost/socket.io-client][Socket.IO client for JavaScript]], you'll need it!
-
-Got it? Alright then, just put it to the =chat/frontend= directory and open =chat/frontend/client.html= in your Web browser. You'll be greeted with a tiny input box for your nickname and a button saying =Start chatting!=, but don't click it just ye-. Goddamnit. You clicked it, didn't you?
+We're ready to start chatting! Open =chat/frontend/client.html= in your Web browser and you'll be greeted with a tiny input box for your nickname and a button saying =Start chatting!=, but don't click it just ye-. Goddamnit. You clicked it, didn't you?
 
 We first need to run the server, silly! This is what needs to be done:
 - run an instance of Redis on =localhost= under port =6379=,
 - run the backend Python script by invoking =python examples/chat/backend/backend.py=,
 - run Hive by invoking =make run CONFIG=examples/chat/config/config.json=,
 
-NOW click the button to join the chat server. If everything went well youll be greeted by a chatbox containing:
+NOW click the button to join the chat server. If everything went well you'll be greeted by a chatbox containing:
 
 #+begin_example
 *** Welcome to the main room!
