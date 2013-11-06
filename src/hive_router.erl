@@ -258,7 +258,7 @@ code_change(_OldVsn, State, _Extra) ->
 
 %% Internal functions:
 sha_hex(Data) ->
-    list_to_binary(lists:flatten([io_lib:format("~.16b", [N]) || <<N>> <= crypto:hash(sha, Data)])).
+    list_to_binary(lists:flatten([io_lib:format("~2.16.0b", [N]) || <<N>> <= crypto:hash(sha, Data)])).
 
 get_client(Sid, Clients) ->
     case ets:lookup(Clients, Sid) of
