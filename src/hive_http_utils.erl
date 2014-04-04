@@ -33,7 +33,7 @@ reply_no_log(Code, Reply, Request) ->
     Req.
 
 origin_valid(Request) ->
-    case cowboy_req:header(<<"origin">>, Request, "null") of
+    case cowboy_req:header(<<"origin">>, Request, <<"null">>) of
         {Origin, _Req} ->
             case lists:member(Origin, hive_config:get(<<"hive.allowed_origins">>)) of
                 true  -> {ok, Origin};
