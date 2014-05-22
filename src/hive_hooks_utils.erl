@@ -150,8 +150,12 @@ state_json(Trigger, State) ->
     case get_value(all, State) of
         {ok, Data, NewState} ->
             Sid = State#state.sid,
+            Id = hive_socketio_parser:encode_id(Trigger#sio_message.id),
             T = jsonx:decode(Trigger#sio_message.data),
-            {ok, jsonx:encode({[{sid, Sid}, {trigger, T}, {state, Data}]}), NewState};
+            {ok, jsonx:encode({[{sid, Sid},
+                                {trigger, T},
+                                {trigger_id, Id},
+                                {state, Data}]}), NewState};
 
         {error, Error, NewState} ->
             {error, Error, NewState};

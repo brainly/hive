@@ -1,7 +1,7 @@
 -module(hive_socketio_parser).
 -author('kajetan.rzepecki@zadane.pl').
 
--export([decode_maybe_batch/1, encode_batch/1, decode_batch/1, encode/1, decode/1]).
+-export([decode_maybe_batch/1, encode_batch/1, decode_batch/1, encode/1, encode_id/1, decode/1]).
 
 -ifdef(TEST).
 -compile(export_all). %% NOTE For testing convenience.
@@ -29,13 +29,13 @@ encode(SIOMessage = #sio_message{}) ->
     Type = integer_to_binary(indexof(SIOMessage#sio_message.type, ?MESSAGE_TYPES) - 1),
     Endpoint = SIOMessage#sio_message.endpoint,
     Data = SIOMessage#sio_message.data,
-    Id = case SIOMessage#sio_message.id of
-             {client, I} -> Int = integer_to_binary(I),
-                            <<Int/binary, "+">>;
-             {server, I} -> integer_to_binary(I);
-             undefined   -> <<"">>
-         end,
+    Id = encode_id(SIOMessage#sio_message.id),
     <<Type/binary, ":", Id/binary, ":", Endpoint/binary, ":", Data/binary>>.
+
+encode_id({client, I}) -> Int = integer_to_binary(I),
+                          <<Int/binary, "+">>;
+encode_id({server, I}) -> integer_to_binary(I);
+encode_id(undefined)   -> <<"">>.
 
 indexof(Element, List) ->
     indexof(Element, List, 1). %% NOTE 1-based to keep Erlangs convention.
