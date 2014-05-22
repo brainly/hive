@@ -122,8 +122,8 @@ recv(Endpoint, State) ->
         {ok, Packet} ->
             [Message] = hive_socketio_parser:decode_batch(Packet),
             case Message of
-                #sio_message{type = message, endpoint = Endpoint, data = Data} ->
-                    {ok, Data};
+                #sio_message{} ->
+                    {ok, Message#sio_message.data};
 
                 Otherwise ->
                     ?inc(?CONN_TCP_ERRORS),
