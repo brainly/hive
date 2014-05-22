@@ -3,15 +3,26 @@
 -behaviour(application).
 
 -export([start/2, stop/1]).
--export([start/1, stop/0]).
+-export([start_dev/1, start/1, stop/0]).
 -export([uptime/0, memory/0, processes/0]).
 
-start([Build, ConfigFile | _Ignored]) ->
-    %% The prelude definitions:
-    hive_config:set(hive_build, Build), %% NOTE It's not really a build since it's run-time, but hey...
-    hive_config:set(hive_config_file, list_to_binary(atom_to_list(ConfigFile))),
-    hive_config:set(hive_schema_dir, <<"etc/schema">>),
-    hive_config:set(hive_plugins_dir, <<"plugins">>),
+start_dev([Plugins, Schema, Config | _Ignored]) ->
+    %% Development prelude definitions:
+    hive_config:set(hive_build, development),
+    hive_config:set(hive_config_file, list_to_binary(atom_to_list(Config))),
+    hive_config:set(hive_schema_dir, list_to_binary(atom_to_list(Schema))),
+    hive_config:set(hive_plugins_dir, list_to_binary(atom_to_list(Plugins))),
+    start().
+
+start([Plugins, Schema, Config | _Ignored]) ->
+    %% Production prelude definitions:
+    hive_config:set(hive_build, production),
+    hive_config:set(hive_config_file, list_to_binary(atom_to_list(Config))),
+    hive_config:set(hive_schema_dir, list_to_binary(atom_to_list(Schema))),
+    hive_config:set(hive_plugins_dir, list_to_binary(atom_to_list(Plugins))),
+    start().
+
+start() ->
     application:start(crypto),
     inets:start(),
     ibrowse:start(),

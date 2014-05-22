@@ -4,6 +4,8 @@ DEST:=$(PREFIX)$(PROJECT)
 REBAR=./rebar
 
 # The default configuration file:
+PLUGINS=plugins/
+SCHEMA=etc/schema/
 CONFIG=etc/hive.json
 
 all: build
@@ -13,12 +15,12 @@ build:
 
 run:
 	@escript priv/test_config.erl $(CONFIG)
-	@sh priv/start.sh $(CONFIG)
+	@sh priv/start.sh $(PLUGINS) $(SCHEMA) $(CONFIG)
 
 run-dev:
 	@echo $(CONFIG)
 	@escript priv/test_config.erl $(CONFIG)
-	@sh priv/start-dev.sh $(CONFIG)
+	@sh priv/start-dev.sh $(PLUGINS) $(SCHEMA) $(CONFIG)
 
 unit-test:
 	@rm -rf .eunit

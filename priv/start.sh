@@ -5,5 +5,5 @@ exec erl +K true \
     -pa ebin edit deps/*/ebin \
     -sname hive \
     -s lager \
-    -s hive start production $@
+    -s hive start $@
 
