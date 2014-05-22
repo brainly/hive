@@ -13,6 +13,7 @@ load() ->
     {ok, [{<<"action.stop">>, fun init_stop/1},
           {<<"action.error">>, fun init_error/1},
           {<<"action.send_event">>, fun init_event/1},
+          {<<"action.send_ack">>, fun init_ack/1},
           {<<"action.send_message">>, fun init_message/1},
           {<<"action.send_json">>, fun init_json/1},
           {<<"action.update_state">>, fun init_store/1}], undefined}.
@@ -52,6 +53,12 @@ init_message(_Args) ->
 
 message(_Args, _Action, Trigger, State) ->
     {reply, #sio_message{type = message, data = Trigger#internal_event.args}, State}.
+
+init_ack(_Args) ->
+    {ok, fun ack/4}.
+
+ack(_Args, _Action, Trigger, State) ->
+    {reply, #sio_message{type = ack, data = Trigger#internal_event.args}, State}.
 
 init_json(_Args) ->
     {ok, fun json/4}.
