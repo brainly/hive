@@ -29,7 +29,7 @@ start_link() ->
 init([]) ->
     Strategy = {one_for_all, 5, 10},
     Processes = [{hive_plugins,
-                  {hive_plugins, start_link, [<<"hurr">>]},
+                  {hive_plugins, start_link, []},
                   permanent,
                   5000,
                   worker,
