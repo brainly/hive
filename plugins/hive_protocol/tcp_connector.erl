@@ -61,7 +61,7 @@ validate(<<"connector.tcp">>, Descriptor) ->
     Args = proplists:get_value(<<"args">>, Descriptor),
     case jesse:validate_with_schema(jsonx:decode(Schema), Args) of
         {ok, _Args} ->
-            %% NOTE TCP connetor is used to listen on the hive side. It's assumed to be fine.
+            %% NOTE TCP conncetor is used to listen on the hive side. It's assumed to be fine.
             ok;
 
         {error, Error} ->
@@ -82,7 +82,7 @@ checkout(Pool, Timeout) ->
     gen_server:call(Pool, {checkout, Timeout}).
 
 checkin(Pool, Worker) ->
-    gen_server:call(Pool, {checkin, Worker}).
+    gen_server:cast(Pool, {checkin, Worker}).
 
 transaction(Pool, Transaction) ->
     gen_server:call(Pool, {transaction, Transaction}).
@@ -149,15 +149,6 @@ handle_call({checkout, Timeout}, From, State) ->
             {reply, {error, Error}, State}
     end;
 
-handle_call({checkin, Worker}, _From, State) ->
-    case checkin_worker(Worker, State) of
-        {ok, NewState} ->
-            {reply, ok, NewState};
-
-        {error, Error} ->
-            {reply, {error, Error}, State}
-    end;
-
 handle_call({transaction, Transaction}, From, State) ->
     case checkout_worker(State) of
         retry_later ->
@@ -188,6 +179,16 @@ handle_call(Message, _From, State) ->
     ?inc(?CONN_TCP_ERRORS),
     lager:warning("Unhandled Hive TCP Connector call: ~p", [Message]),
     {reply, ok, State}.
+
+handle_cast({checkin, Worker}, State) ->
+    case checkin_worker(Worker, State) of
+        {ok, NewState} ->
+            {noreply, NewState};
+
+        {error, Error} ->
+            lager:error("Hive TCP Connector encountered an error: ~p", [Error]),
+            {noreply, State}
+    end;
 
 handle_cast({add, Worker}, State) ->
     Workers = State#tcp_state.workers,
