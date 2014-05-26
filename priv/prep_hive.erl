@@ -11,11 +11,11 @@ main([]) ->
     io:format("Usage: ./prep_hive path/to/config.json"),
     halt(1);
 
-main([Filename]) ->
+main([Plugins, Schema, Config]) ->
     application:start(lager),
-    hive_config:set(hive_config_file, list_to_binary(Filename)),
-    hive_config:set(hive_schema_dir, <<"etc/schema">>),
-    hive_config:set(hive_plugins_dir, <<"plugins">>),
+    hive_config:set(hive_config_file, list_to_binary(Config)),
+    hive_config:set(hive_schema_dir, list_to_binary(Schema)),
+    hive_config:set(hive_plugins_dir, list_to_binary(Plugins)),
     erlang:process_flag(trap_exit, true),
     hive_env_sup:start_link(),
     setup_logging(),
