@@ -206,7 +206,7 @@ handle_cast(Message, State) ->
     lager:warning("Unhandled Hive TCP Connector cast: ~p", [Message]),
     {noreply, State}.
 
-handle_info({timeout, _Ref, {checkout_timout, From}}, State) ->
+handle_info({timeout, _Ref, {checkout_timeout, From}}, State) ->
     PoolName = State#tcp_state.pool_name,
     ?inc(?CONN_TCP_ERRORS),
     ErrorMsg = hive_error_utils:format("Hive TCP Connector ~s's request timed out!", [PoolName]),

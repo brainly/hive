@@ -40,7 +40,7 @@ test_connector(NumRequests, Concurrency, Port, Data) ->
               {<<"overflow">>, 0},
               {<<"args">>, [{<<"port">>, Port},
                             {<<"max_connection_timeout">>, ?TIMEOUT},
-                            {<<"restart_timeout">>, 100},
+                            {<<"restart_timeout">>, 10000},
                             {<<"max_connections">>, Concurrency}]}],
     application:set_env(hive, <<"connectors.pools">>, [{<<"test">>, Config}]),
     application:set_env(hive, <<"connectors.rent_timeout">>, 6000),
