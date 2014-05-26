@@ -1,3 +1,3 @@
 #! /bin/sh
 
-git tag > $@
+git tag | tail -n1 > $@

@@ -65,7 +65,7 @@ The libraries, listed belowe, are downloaded automatically by Rebar via *git*, s
 
 - *Ibrowse* - [[https://github.com/cmullaparthi/ibrowse][an HTTP client]]; Hive uses version *v4.0.2*.
 
-# <<<ref:folsom>>>
+# <<<ref-folsom>>>
 - *Folsom* - [[https://github.com/boundary/folsom][a monitoring tool]]; Hive requires version *0.7.4*.
 
 - *Poolboy* - worker pool management library found [[https://github.com/devinus/poolboy][here]]. Hive requires version *1.0.0*.
@@ -244,10 +244,10 @@ hive_root_sup                        - Top-level Hive supervisor.
 The Hive server employs a *graceful termination* strategy - after requesting a server termination Clients are asked /nicely/ to close their connections and after a certain timeout Hive forces their termination by killing them. No new connections are accepted during the graceful termination period.
 
 #+latex: \noindent
-The configuration parameters responsible for the graceful termination behaviour are described [[ref:graceful_config][here]].
+The configuration parameters responsible for the graceful termination behaviour are described [[ref-graceful_config][here]].
 
 #+latex: \noindent
-The graceful termination RESTful API is described [[ref:api_stop][here]].
+The graceful termination RESTful API is described [[ref-api_stop][here]].
 
 ** Repository layout reference
 #+begin_example
@@ -382,7 +382,7 @@ Required parameters:
 null, "null", "*.*", "http://zadane.pl"
 #+end_src
 
-# <<<ref:graceful_config>>>
+# <<<ref-graceful_config>>>
 - =hive.graceful_termination_timeout= - the time (*in milliseconds*) after which Client Workers will be forced to terminate on server termination.
 
 #+latex: \noindent
@@ -450,19 +450,19 @@ This subsection describes the *clients* part of the configuration file and corre
 #+latex: \noindent
 Required parameters:
 
-- =clients.state= - the descriptor of a State Manager to be used by the Client processes. It has to be *a JSON object* containing exactly three fields: =state_manager=, =initial_value= and =args=. State Management and available State Managers are described in greater detail in [[ref:state_management][a later section]].
+- =clients.state= - the descriptor of a State Manager to be used by the Client processes. It has to be *a JSON object* containing exactly three fields: =state_manager=, =initial_value= and =args=. State Management and available State Managers are described in greater detail in [[ref-state_management][a later section]].
 
-# <<<ref:events_config>>>
+# <<<ref-events_config>>>
 - =clients.actions= - *a JSON object* listing various *internal event* dispatchers recognized by the Client Workers on a *per-action* basis, that is, each field names an action will trigger Hive Internal Event dispatchers listed in this field's value. The value has to be *a JavaScript array* of Hive Internal Event dispatcher descriptors, each of which has to be *a JSON object* that defines several fields:
-  + =action= - the name of the Hive Internal Event dispatcher to run when triggered. Available Hive Internal Event dispatchers are described in greated detail in [[ref:internal_events][a later section]].
+  + =action= - the name of the Hive Internal Event dispatcher to run when triggered. Available Hive Internal Event dispatchers are described in greated detail in [[ref-internal_events][a later section]].
 
-  + =args= - the arguments passed to the Hive Internal Event dispatcher when it is run. Accepted argument descriptions are found in [[ref:internal_events][a later section]].
+  + =args= - the arguments passed to the Hive Internal Event dispatcher when it is run. Accepted argument descriptions are found in [[ref-internal_events][a later section]].
 
-# <<<ref:hooks_config>>>
+# <<<ref-hooks_config>>>
 - =clients.hooks= - *a JSON object* containing various Hive Hook definitions on a *per-event* basis, that is, each field of the JSON object names an event that will trigger Hive Hooks listed in this field's value. The value has to be *a JavaScript array* of Hive Hook descriptors, each of which has to be *a JSON object* that defines several fields:
-  + =hook= - the name of the Hive Hook to run when triggered. Available Hive Hooks are described in greated detail in [[ref:hooks][a later section]].
+  + =hook= - the name of the Hive Hook to run when triggered. Available Hive Hooks are described in greated detail in [[ref-hooks][a later section]].
 
-  + =args= - the arguments passed to the Hive Hook when it is run. Accepted arguments descriptions are found in [[ref:hooks][a later section]].
+  + =args= - the arguments passed to the Hive Hook when it is run. Accepted arguments descriptions are found in [[ref-hooks][a later section]].
 
 #+latex: \noindent
 Example values:
@@ -507,16 +507,16 @@ This subsection describes the *connectors* part of the configuration file. It is
 Required parameters:
 - =connectors.rent_timeout= - the timeout *in milliseconds* used when waiting for an available worker in a given connectors pool. If there are no available workers in a pool, the renting process will wait for at most this much time. It has to be *a positive integer*.
 
-# <<<ref:connectors_config>>>
+# <<<ref-connectors_config>>>
 - =connectors.pools= - *a JSON object* of *name/pool descriptor* pairs - pairs of *strings* representing pool names and *JSON objects* representing pools themselves. Each pool descriptor has to define several required parameters:
 
   + =size= - the base size of the pool; *a non-negative integer*.
 
   + =overflow= - the maximum number of additional workers that are created under heavy server load (the total number of available workers is therefore =size= + =overflow=). It has to be *a non-negative integer*.
 
-  + =args= - the arguments that will be passed to the connector workers at initialization. The accepted values depend heavily on the type of the connector, and will be described later in [[ref:connectors][an appropriate section]].
+  + =args= - the arguments that will be passed to the connector workers at initialization. The accepted values depend heavily on the type of the connector, and will be described later in [[ref-connectors][an appropriate section]].
 
-  + =connector= - the name of the connector plugin to use for this pool. It has to be *a string*. The available Connector pools will be described in [[ref:connectors][a later section]].
+  + =connector= - the name of the connector plugin to use for this pool. It has to be *a string*. The available Connector pools will be described in [[ref-connectors][a later section]].
 
 #+latex: \noindent
 Example values:
@@ -542,12 +542,12 @@ Example values:
 #+end_src
 
 *** =pubsub=
-This subsection describes the *pubsub* portion of the configuration file. It is used to control the Hive Pub-Sub facitily. More about the Hive Pub-Sub can be found in [[ref:pubsub][a later section]].
+This subsection describes the *pubsub* portion of the configuration file. It is used to control the Hive Pub-Sub facitily. More about the Hive Pub-Sub can be found in [[ref-pubsub][a later section]].
 
 #+latex: \noindent
 Required parameters:
 
-# <<<ref:pubsub_config>>>
+# <<<ref-pubsub_config>>>
 - =pubsub.channels= - *a JSON object* containing various Hive Pub-Sub channel definitions on *a per-prefix* basis, that is, each field of the JSON object names a Pub-Sub channel prefix which might later generate concrete Pub-Sub channels. Each *channel descriptor* has to be *a JSON object* that defines several fields:
 
   + =timeout= - the time (*in milliseconds*) after which the channel will cease to exist if there are no more Client workers subscribed to it. It has to be *a non-negative integer*. A timeout of *0 means infinity (bviously)* - a permanent channel that never ceases to exist.
@@ -578,7 +578,7 @@ Example values:
 #+end_src
 
 *** =api=
-# <<<ref:api_config>>>
+# <<<ref-api_config>>>
 This subsection describes the *api* part of the configuration file. Parameters described in this section control the behaviour of the Hive API Server.
 
 #+latex: \noindent
@@ -600,7 +600,7 @@ Example values:
 #+end_src
 
 *** =monitor=
-# <<<ref:monitor_config>>>
+# <<<ref-monitor_config>>>
 This subsection describes the *monitor* part of the configuration file. It controls the behaviour of the Hive Monitor.
 
 #+latex: \noindent
@@ -623,7 +623,7 @@ Example values:
 #+end_src
 
 *** =log=
-# <<<ref:log-config>>>
+# <<<ref-log-config>>>
 This subsection describes the *log* part of the configuration file. It controls the behaviour of the logger.
 
 #+latex: \noindent
@@ -702,10 +702,10 @@ For convenience each configuration section can be stored in its own, separate fi
 #+latex: \pagebreak
 
 * Monitoring & Statistics
-This section describes the monitoring facilities of the Hive server. Statistics gathering is performed by changing values of various in-memory counters during Hive run-time, using [[ref:folsom][Folsom]] external library. All counters are represented by *non-negative integers*, and each of them corresponds to a specific metric of the Hive server.
+This section describes the monitoring facilities of the Hive server. Statistics gathering is performed by changing values of various in-memory counters during Hive run-time, using [[ref-folsom][Folsom]] external library. All counters are represented by *non-negative integers*, and each of them corresponds to a specific metric of the Hive server.
 
 ** Statistics structure
-# <<<ref:statistics-structure>>>
+# <<<ref-statistics-structure>>>
 
 There are many different metrics which are grouped into several sections, and subsections. The structure of the statistics sections is shown below:
 
@@ -1113,7 +1113,7 @@ This subsection describes the *api.clients* portion of the Hive statistics. Metr
 This section describes the RESTful API exposed by the Hive Monitor.
 
 #+latex: \noindent
-The API is available on the same host as the rest of the Hive server, on a [[ref:monitor_config][configured]] port. The structure of the Hive Monitor URL is as follows:
+The API is available on the same host as the rest of the Hive server, on a [[ref-monitor_config][configured]] port. The structure of the Hive Monitor URL is as follows:
 
 #+begin_src javascript
 Host [ ':' Port ] '/monitor/' APIKey [ '/' StatisticsSection ]
@@ -1138,7 +1138,7 @@ Hive Monitor supports two HTTP methods:
 In case of a bad request an appropriate error message is returned.
 
 ** Monitor response format
-This section describes the format of data returned by the Hive Monitor via its RESTful API. The Hive Monitor uses JSON format to represent its output. If a Monitor request results in an error, a convention described in [[ref:error_format][the next section]] is used, otherwise the returned JSON objects are structured as described in [[ref:statistics-structure][statistics structure section]]. The resulting JSON object *always wraps* the output in all requested sections. Example (pretty formatted) Hive Monitor output:
+This section describes the format of data returned by the Hive Monitor via its RESTful API. The Hive Monitor uses JSON format to represent its output. If a Monitor request results in an error, a convention described in [[ref-error_format][the next section]] is used, otherwise the returned JSON objects are structured as described in [[ref-statistics-structure][statistics structure section]]. The resulting JSON object *always wraps* the output in all requested sections. Example (pretty formatted) Hive Monitor output:
 
 #+begin_src javascript
 // GET host:port/monitor/apikey/hive.memory
@@ -1173,7 +1173,7 @@ This section describes the format of data returned by the Hive Monitor via its R
 This section describes how error handling and logging is performed in the Hive server.
 
 ** Log
-Hive uses [[https://github.com/basho/lager][Lager]] for logging purposes and therefore all of its quirks apply. The only difference is the configuration, which is intercepted by Hive and greatly simplified for convenience (described [[<<ref:log-config>>>][earlier]]).
+Hive uses [[https://github.com/basho/lager][Lager]] for logging purposes and therefore all of its quirks apply. The only difference is the configuration, which is intercepted by Hive and greatly simplified for convenience (described [[<<ref-log-config>>>][earlier]]).
 
 #+latex: \noindent
 In general, the logging back-ends use a fairly simple log format shown below:
@@ -1190,7 +1190,7 @@ YYYY-MM-DD HH:MM:SS.mmm
 #+end_example
 
 *** Log file
-The log file back-end uses the full logging format and provides all the necessary information needed to identify the origin of the log line and (usually) the reason for its existence. The log file is named *hive.log* and its associated log-level can be [[ref:log-config][configured]] in the configuration file.
+The log file back-end uses the full logging format and provides all the necessary information needed to identify the origin of the log line and (usually) the reason for its existence. The log file is named *hive.log* and its associated log-level can be [[ref-log-config][configured]] in the configuration file.
 
 *** Console log
 The console logging back-end uses a simplified logging format for obvious reasons of clarity:
@@ -1230,7 +1230,7 @@ Errors are logged at the place of their origin and additionally at each /layer/ 
 #+end_example
 
 #+latex: \noindent
-This behaviour can be adjusted using the log-levels of the *log* section of the [[ref:log-config][configuration file]]. The following diagram presents *a simplified* Hive layer model (errors generated in top layers "sink" to the lower layers and eventually reach the bottom, where they are reported to the Client):
+This behaviour can be adjusted using the log-levels of the *log* section of the [[ref-log-config][configuration file]]. The following diagram presents *a simplified* Hive layer model (errors generated in top layers "sink" to the lower layers and eventually reach the bottom, where they are reported to the Client):
 
 #+begin_example
 +---------------------+---------------------+
@@ -1320,7 +1320,7 @@ This section lists and gives a short destription of various error codes used thr
 - Other - Hive Plugins may return their own error codes and descriptions.
 
 ** Error response format
-# <<<ref:error_format>>>
+# <<<ref-error_format>>>
 This section describes the format of error messages that are sent to the outside world (via API/Monitor replies or otherwise directly to the Client). Errors are represented as *JSON objects* that define exactly two fields: =error= and =description=:
 
 #+begin_src javascript
@@ -1373,11 +1373,11 @@ For example:
 
 #+latex: \pagebreak
 * API Servers
-# <<<ref:hive_api>>>
+# <<<ref-hive_api>>>
 This section describes the RESTful API exposed by the Hive Server.
 
 #+latex: \noindent
-The API is available on the same host as the rest of the Hive server, on a [[ref:api-config][configured]] port. The structure of the Hive Monitor URL is as follows:
+The API is available on the same host as the rest of the Hive server, on a [[ref-api-config][configured]] port. The structure of the Hive Monitor URL is as follows:
 
 #+begin_src javascript
 Host [ ':' Port ] '/api/' APIKey '/' APISection '/' Action [ '/' Arguments ... ]
@@ -1395,7 +1395,7 @@ host:port/api/apikey/clients/dispatch/...
 The following subsections describe various parts of the Hive API. Each section names an endpoint, consisting of =APISection=, =Action= and =Arguments=, used to perform the action, lists HTTP request methods it accepts and describes the structure of data required by the action.
 
 *** =/hive/stop/=
-# <<<ref:api_stop>>>
+# <<<ref-api_stop>>>
 - Accepted HTTP methods:
   + =POST= - initiates graceful termination of the *entire Hive Server*.
 
@@ -1424,15 +1424,15 @@ The following subsections describe various parts of the Hive API. Each section n
 - Accepted HTTP methods:
   + =POST= - assumes the body of the request is an *internal event* (or a JavaScript array of internal events) and routes it to the =sid= Client worker.
 
-- Data format - an internal event, as described in [[ref:hive_events][a later section]].
+- Data format - an internal event, as described in [[ref-hive_events][a later section]].
 
 *** =/pubsub/action/cid/=
-# <<<ref:api_pubsub>>>
+# <<<ref-api_pubsub>>>
 
 - Accepted HTTP request methods:
   + =POST= - assumes the body of the request is an *internal event* (or a JavaScript array of internal events) and publishes it to the Hive Pub-Sub channel =cid=.
 
-- Data format - an internal event, as described in [[ref:hive_events][a later section]].
+- Data format - an internal event, as described in [[ref-hive_events][a later section]].
 
 *** =/pubsub/publish/cid/=
 
@@ -1451,7 +1451,7 @@ The following subsections describe various parts of the Hive API. Each section n
 - Data format - *a JSON array of strings* representing Hive Pub-Sub Channel IDs.
 
 ** API response format
-The Hive API Server responses (if any) are encoded as *simple JSON objects*. In case of encountering any errors, an error response conforming to [[ref:error_format][a previously defined]] format will be genarated.
+The Hive API Server responses (if any) are encoded as *simple JSON objects*. In case of encountering any errors, an error response conforming to [[ref-error_format][a previously defined]] format will be genarated.
 
 #+latex: \noindent
 Example Hive API Server output:
@@ -1480,9 +1480,9 @@ Client initializes the connection to the Hive server and receives a Socket.IO ha
 
 Once the Socket.IO handshake has been finalized, Client-Server communication may take place. The Client sends Socket.IO messages to the Hive server over the selected transport; the Hive server decodes them into an internal format, routes them to the correct Client worker process (specified by the session ID) and *handles* them using a *worker module*. Every such *external event* (external as in "outside of the Brainly.com infrastructure") may trigger several actions of the following types:
 
-- *running event hooks* - described in greater detail [[ref:client_hooks][here]] and [[ref:hooks][here]]; this may generate *internal events* (internal as in "originating from the Brainly.com infrastructure") which are handled similarly to the external ones, producing replies, state updates or running other event hooks, in turn generating even more internal events,
+- *running event hooks* - described in greater detail [[ref-client_hooks][here]] and [[ref-hooks][here]]; this may generate *internal events* (internal as in "originating from the Brainly.com infrastructure") which are handled similarly to the external ones, producing replies, state updates or running other event hooks, in turn generating even more internal events,
 
-- *updating the client worker state* - described [[ref:state_management][here]],
+- *updating the client worker state* - described [[ref-state_management][here]],
 
 - *sending a reply* - the trivial case, where a reply is sent to the client immediately (this is generally used for Socket.IO control messages, error handling and such).
 
@@ -1522,11 +1522,11 @@ The state transition scheme outlined above is very general and /not quite true/ 
 #+latex: \end{landscape}
 
 *** Client Hooks
-# <<<ref:client_hooks>>>
+# <<<ref-client_hooks>>>
 This subsection describes the Hive Hooks facility. Hooks are used to dispatch received *external* and *internal events* and perform certain actions based on the event's type and payload.
 
 **** Hook basics
-The Hive hooks are defined on a per-event basis, that is, each event type may (or may not) have several hooks associated with it. These hooks will be triggered, and actions they encapsulate will be performed each time an event of that type is received by a Client worker. This holds true for all *external events* (those originating from the Client) but not for all *internal events* (those originating from the rest of the system), the later must request further event dispatch (described [[ref:internal_events][here]]). There are several *special event types* that trigger Hive hooks, that are not received from the Client nor the rest of the system:
+The Hive hooks are defined on a per-event basis, that is, each event type may (or may not) have several hooks associated with it. These hooks will be triggered, and actions they encapsulate will be performed each time an event of that type is received by a Client worker. This holds true for all *external events* (those originating from the Client) but not for all *internal events* (those originating from the rest of the system), the later must request further event dispatch (described [[ref-internal_events][here]]). There are several *special event types* that trigger Hive hooks, that are not received from the Client nor the rest of the system:
 
 - =on_connect= - event generated once the Client worker is upgraded to the final, specialized type; hooks associated with this event *must not return any replies*, as it is not yet certain that the connection is valid, and sending replies might fail,
 
@@ -1535,9 +1535,9 @@ The Hive hooks are defined on a per-event basis, that is, each event type may (o
 - =on_disconnect= - event generated on Client worker termination; any return values of the hooks associated with this event are *ignored and discarded*.
 
 #+latex: \noindent
-Each Hive hook encapsulates a simple action that ts performes upon its invocation. The concrete actions depend on the hook type, and are described in [[ref:hooks][a later section]], but a general convention is kept that each action is described in terms of *metadata*, *arguments*, *modification* and *return values*:
+Each Hive hook encapsulates a simple action that ts performes upon its invocation. The concrete actions depend on the hook type, and are described in [[ref-hooks][a later section]], but a general convention is kept that each action is described in terms of *metadata*, *arguments*, *modification* and *return values*:
 
-- Actions receive some Client worker *metadata* and have it available during execution (more on this [[ref:client_json][later]]).
+- Actions receive some Client worker *metadata* and have it available during execution (more on this [[ref-client_json][later]]).
 
 - Actions take additional *arguments*, that can be specified in the configuration file.
 
@@ -1553,7 +1553,7 @@ Each Hive hook encapsulates a simple action that ts performes upon its invocatio
 Hooks are run until either of *stop* or *error* result is encountered or until there are no more hooks to run. All *replies* are accumulated and sent to the Client as a batch. Hook order *does* matter, since each hook might modify the Client workers state, which will be then passed to the next hook in the list.
 
 #+latex: \noindent
-Hook actions may produce *internal events* that will be dispatched the same way as mentioned [[ref:hive_events][previously]].
+Hook actions may produce *internal events* that will be dispatched the same way as mentioned [[ref-hive_events][previously]].
 
 #+latex: \noindent
 Example hook definitions:
@@ -1577,7 +1577,7 @@ Example hook definitions:
 Hooks defined above will cause each Hive Client worker to print "Connected!" and "Disconnected!" to the console on their initialization and termination respectively. Additionally, a ping event will be logged and echoed back to the Client each time it is received.
 
 **** Client metadata
-# <<<ref:client_json>>>
+# <<<ref-client_json>>>
 This subsection describes the metadata used by various Hive Hooks. The metadata consists of the internal state of a Client worker,its Session ID and the event that triggered the hook. It is passed to the hook together with additional arguments defined in the configuration file and it is represented as *a JSON object* conforming to the following format:
 
 #+begin_src javascript
@@ -1613,7 +1613,7 @@ The Client worker/hook interaction is summarized on the following diagram:
 #+end_center
 
 *** Client state management
-# <<<ref:state_management>>>
+# <<<ref-state_management>>>
 This subsection describes the Client State Manager - a facility used to manage the Client worker state as a key-value store. Most of the technical details have been omitted for various reasons.
 
 #+latex: \noindent
@@ -1636,7 +1636,7 @@ The =initial_value= may be *any JSON value*, however since the State Manager pro
 #+end_src
 
 #+latex: \noindent
-A list all available State Managers and their configuration parameters can be found [[ref:state_managers][here]].
+A list all available State Managers and their configuration parameters can be found [[ref-state_managers][here]].
 
 ** Service Connectors
 This section describes other details of the Hive Connectors facility. The Hive Connectors facility that provides access to various services, such as Redis databases or HTTP servers, uses several schemes of worker pool management. A pool consists of a supervisor and a number of *worker processes*, which are *rented* by various other Hive modules (for example Hive Protocol hooks). Technical details of pool management and worker renting were omitted from this user guide.
@@ -1644,7 +1644,7 @@ This section describes other details of the Hive Connectors facility. The Hive C
 Each pool can be *named* and has a configurable size that may increase temporarily during run-time, therefore each pool can be described in terms of its *name*, a *connector plugin*, *size* and *overflow* (the maximum number of additional worker processes to spawn under heavy server load) and *arguments* it uses for set-up, which, incidentally, are the configuration parameters required by each Hive Connectors pool.
 
 #+latex: \noindent
-A list all available Connector pools can be found [[ref:connectors][here]].
+A list all available Connector pools can be found [[ref-connectors][here]].
 
 *** Connectors summary
 The Client worker/Connector pool interaction is summarized on the following diagram:
@@ -1655,11 +1655,11 @@ The Client worker/Connector pool interaction is summarized on the following diag
 #+end_center
 
 ** Pub-Sub Channels
-# <<<ref:pubsub>>>
+# <<<ref-pubsub>>>
 This subsection and its subsections describe the Hive Pub-Sub facility.
 
 *** Channel templates
-A set of Pub-Sub channel templates can be defined in the Hive configuration file. Each template consists of a *channel prefix* - the first part of the channel ID, and a *channel descriptor* - as described [[ref:pubsub_config][here]]. At runtime, channels are created using one of the templates determined by their channel ID. Any attempt at creating a channel that doesn't follow any channel template defined in the configuration file will fail and an error response will be produced.
+A set of Pub-Sub channel templates can be defined in the Hive configuration file. Each template consists of a *channel prefix* - the first part of the channel ID, and a *channel descriptor* - as described [[ref-pubsub_config][here]]. At runtime, channels are created using one of the templates determined by their channel ID. Any attempt at creating a channel that doesn't follow any channel template defined in the configuration file will fail and an error response will be produced.
 
 *** Channel types
 Each template defines a channel type. Hive Pub-Sub currently supports two types of channels:
@@ -1674,12 +1674,12 @@ Each Pub-Sub channel is created with the first Client attempting a subscription.
 #+latex: \noindent
 Channel (un)subscriptions can be managed in either of the following ways:
 
-- via the Hive API Server - as described [[ref:api_pubsub][here]],
+- via the Hive API Server - as described [[ref-api_pubsub][here]],
 
-- via the Hive Pub-Sub Hook - as described [[ref:hook_pubsub][here]].
+- via the Hive Pub-Sub Hook - as described [[ref-hook_pubsub][here]].
 
 #+latex: \noindent
-Events can be published to the Hive Pub-Sub channel only via the Hive API Server (as described [[ref:api_pubsub][here]]).
+Events can be published to the Hive Pub-Sub channel only via the Hive API Server (as described [[ref-api_pubsub][here]]).
 
 *** Pub-Sub summary
 The following diagrams summarize the Hive Pub-Sub channel operation.
@@ -1736,9 +1736,9 @@ The Hive server may be combined with a number of modules written in non-Erlang p
 *** Hive Protocol basics
 The *Hive Protocol* is a set of communication rules and data formats that are recognized by the Hive server. It involves three components:
 
-- *Internal Events* & *Client Metadata JSON* - described in detail [[ref:internal_events][here]] and [[ref:client_json][here]].
-- *Hive Protocol hook* - described in detail [[ref:hive_protocol_hook][here]].
-- *Hive API* - described in detail [[ref:hive_api][previously]].
+- *Internal Events* & *Client Metadata JSON* - described in detail [[ref-internal_events][here]] and [[ref-client_json][here]].
+- *Hive Protocol hook* - described in detail [[ref-hive_protocol_hook][here]].
+- *Hive API* - described in detail [[ref-hive_api][previously]].
 
 #+latex: \noindent
 Hive Protocol communication is either *simplex* or *duplex*:
@@ -1823,7 +1823,7 @@ An example of a Hive Protocol based communication is presented below:
 #+end_src
 
 *** Non-Erlang modules summary
-The Hive-Backend interaction is somewhat simplistic. It uses all of the major built-it Hive facilities such as the [[ref:client_hooks][Hive Hooks]], [[ref:internal_events][Hive Internal Event dispatchers]] and [[ref:hive_api][Hive API servers]] and can be divided into two itertwinded flows that run simultaneously
+The Hive-Backend interaction is somewhat simplistic. It uses all of the major built-it Hive facilities such as the [[ref-client_hooks][Hive Hooks]], [[ref-internal_events][Hive Internal Event dispatchers]] and [[ref-hive_api][Hive API servers]] and can be divided into two itertwinded flows that run simultaneously
 
 - *the Event loop* - this is a reactive event loop where *external events* originating from the Clients are dispatched resulting in *Hive Protocol Hooks* invocations and Hive-Backend communication.
 
@@ -1838,7 +1838,7 @@ The Hive-Backend interaction has been summarized on the following diagram:
 #+end_center
 
 * Hive Plugins
-# <<<ref:plugins>>>
+# <<<ref-plugins>>>
 Hive Plugins framework is an elaborate way to define extentions for the Hive server. Detailed description of the Hive Plugins framework is outside of the scope of this document. This section describes the Hive Plugins framework and gives a brief description of the available built-in plugins.
 
 ** Plugins basics
@@ -1883,7 +1883,7 @@ Every plugin expects to receive a configuration descriptor on initialization. Th
 The built-in plugins are described shortly in the following subsections.
 
 ** Client Hooks
-# <<<ref:hooks>>>
+# <<<ref-hooks>>>
 *** =utils.echo=
 
 Echoes any received Socket.IO messages back to the Client.
@@ -1938,7 +1938,7 @@ Example declaration:
 #+end_src
 
 *** =pubsub.subscribe=
-# <<<ref:hook_pubsub>>>
+# <<<ref-hook_pubsub>>>
 
 Subscribes a Client to the Hive Pub-Sub channels specified in arguments of the triggering event.
 
@@ -2048,8 +2048,8 @@ Example triggering event (causes the Client to publish events on Hive Pub-Sub ch
 #+end_src
 
 *** =cp.get=
-# <<<ref:hive_protocol_hook>>>
-Performs a synchronous request, similar in semantics to an HTTP GET, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed [[ref:cp_connector][here]]).
+# <<<ref-hive_protocol_hook>>>
+Performs a synchronous request, similar in semantics to an HTTP GET, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed [[ref-cp_connector][here]]).
 
 - metadata used - none,
 
@@ -2072,7 +2072,7 @@ Example declaration:
 #+end_src
 
 *** =cp.put=
-Performs an asynchronous request, similar in semantics to an HTTP PUT, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed [[ref:cp_connector][here]]).
+Performs an asynchronous request, similar in semantics to an HTTP PUT, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed [[ref-cp_connector][here]]).
 
 - metadata used - the Client workers internal state (Session ID, stored values, event that triggered the hook),
 
@@ -2095,7 +2095,7 @@ Example declaration:
 #+end_src
 
 *** =cp.post=
-Performs a synchronous request, similar in semantics to an HTTP POST, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed [[ref:cp_connector][here]]).
+Performs a synchronous request, similar in semantics to an HTTP POST, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed [[ref-cp_connector][here]]).
 
 - metadata used - the Client workers internal state (Session ID, stored values, event that triggered the hook),
 
@@ -2118,8 +2118,8 @@ Example declaration:
 #+end_src
 
 ** Internal Events
-# <<<ref:hive_events>>>
-# <<<ref:internal_events>>>
+# <<<ref-hive_events>>>
+# <<<ref-internal_events>>>
 
 Internal events are used to control the Hive server. These events are generated via the Hive API Server requests or received as a response to a hook action invoked earlier. Internal events must conform to the following format:
 
@@ -2262,7 +2262,7 @@ Example declaration:
 #+end_src
 
 *** =action.add_hooks=
-Dynamically validates, initializes and adds hooks to the Client worker hooks. Assumes =args= to be *a JavaScript array* of hook descriptors (same as described [[ref:hooks_config][before]]). Example event:
+Dynamically validates, initializes and adds hooks to the Client worker hooks. Assumes =args= to be *a JavaScript array* of hook descriptors (same as described [[ref-hooks_config][before]]). Example event:
 #+begin_src javascript
 {
     "action" : "add_hooks",
@@ -2309,7 +2309,7 @@ Example declaration:
 #+end_src
 
 *** =action.start_connectors=
-Starts Hive Connector pools. Assumes =args= to be *a JSON object* representing name/Connector descriptor pairs (the same as described [[ref:connectors_config][before]]). Example event:
+Starts Hive Connector pools. Assumes =args= to be *a JSON object* representing name/Connector descriptor pairs (the same as described [[ref-connectors_config][before]]). Example event:
 
 #+begin_src javascript
   {
@@ -2364,7 +2364,7 @@ Example declaration:
 #+end_src
 
 ** Service Connectors
-# <<<ref:connectors>>>
+# <<<ref-connectors>>>
 Currently available Hive Connector pool types and their arguments are described below:
 
 *** =connector.redis=
@@ -2389,7 +2389,7 @@ The Redis database connector.
   + =max_reconnect_timeout= - *a non-negative integer*, the timeout *in milliseconds* after which a connection is assumed to be dead and no further reconnection attempts should be performed.
 
 *** =connector.http=
-# <<<ref:cp_connectors>>>
+# <<<ref-cp_connectors>>>
 A Hive Protocol compatible HTTP connector. Provides Hive Protocol interface over HTTP. All data is transfered in the bodies of the HTTP requests with no additional encapsulation or serialization.
 
 - =connector= - =connector.http=
@@ -2419,7 +2419,7 @@ A Hive Protocol compatible TCP connector. Provides Hive Protocol interface over 
 
   + =max_connection_timeout= - *a non-negative integer*, the timeout *in milliseconds* after which a connection is assumed to be dead.
 ** State Managers
-# <<<ref:state_managers>>>
+# <<<ref-state_managers>>>
 This section lists and describes all available Hive Client State Managers.
 
 *** =sm.local=
