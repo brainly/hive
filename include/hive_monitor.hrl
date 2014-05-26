@@ -105,6 +105,7 @@
 -define(CONNECTORS_POOLS,        <<"connectors.pools">>).
 -define(CONNECTORS_SPAWN,        <<"connectors.starts">>).
 -define(CONNECTORS_STOP,         <<"connectors.stops">>).
+-define(CONNECTORS_USE,          <<"connectors.use">>).
 -define(CONNECTORS_DO_SAFE,      <<"connectors.safe_transactions">>).
 -define(CONNECTORS_DO_UNSAFE,    <<"connectors.unsafe_transactions">>).
 -define(CONNECTORS_RENT,         <<"connectors.rents">>).
