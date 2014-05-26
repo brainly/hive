@@ -77,10 +77,10 @@ do_unsafe(PoolName, Transaction) ->
     do_unsafe(use(PoolName), Transaction).
 
 rent({connector, PoolPid, ControlerModule}) ->
-    %% NOTE The limiting factor here is the checkout_timeout, so 'infinity' is fine.
     inc(?CONNECTORS_REQUESTS),
     inc(?CONNECTORS_RENT),
     RTimeout = hive_config:get(<<"connectors.rent_timeout">>), %% FIXME This could be faster...
+    %% NOTE Delegates work to the pool returned by ?MODULE:use(PoolName)
     ControlerModule:checkout(PoolPid, RTimeout);
 
 rent(PoolName) ->
@@ -89,6 +89,7 @@ rent(PoolName) ->
 return({connector, PoolPid, ControlerModule}, Worker) ->
     inc(?CONNECTORS_REQUESTS),
     inc(?CONNECTORS_RETURN),
+    %% NOTE Delegates work to the pool returned by ?MODULE:use(PoolName)
     ControlerModule:checkin(PoolPid, Worker);
 
 return(PoolName, Worker) ->
