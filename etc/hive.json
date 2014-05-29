@@ -2,6 +2,8 @@
     "hive" : {
 	"max_processes" : 15000,
 
+	"max_client_slots" : 1000,
+
 	"acceptors" : 100,
         "port" : 8080,
         "allowed_origins" : ["http://127.0.1.1", "ws://192.168.0.102", "null", "ws://localhost"],
