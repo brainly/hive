@@ -178,9 +178,9 @@ handle_call({kill_client, Sid}, _From, State) ->
 
 handle_call({toggle, OnOff}, _From, State) ->
     lager:notice("Hive Router is toggled ~s.", [case OnOff of
-                                                     true  -> "on";
-                                                     false -> "off"
-                                                 end]),
+                                                    true  -> "on";
+                                                    false -> "off"
+                                                end]),
     {reply, ok, State#state{ready = OnOff}};
 
 handle_call({terminate, Time,  Reason}, _From, State) ->
@@ -273,21 +273,31 @@ spawn_client(State, Args) ->
             lager:info("Spawning a new Client: ~s", [Sid]),
             Supervisor = State#state.supervisor,
             Clients = State#state.clients,
-            case supervisor:start_child(Supervisor, [Sid | Args]) of
-                {ok, Pid}      -> erlang:monitor(process, Pid),
-                                  ets:insert(Clients, {Sid, Pid}),
-                                  ets:insert(Clients, {Pid, Sid}), %% So we can remove clients by Pid without expensive ets:matches.
-                                  inc(?TOTAL_SPAWNS),
-                                  inc(?ROUTER_CLIENT_NUM),
-                                  {ok, Sid};
-                {error, Error} -> ErrorMsg = hive_error_utils:format("Unable to spawn new client process: ~p",
-                                                                      [Error]),
-                                  lager:warning(ErrorMsg),
-                                  {error, {router_error, ErrorMsg}}
+            ClientsLimit = hive_config:get(<<"hive.max_client_slots">>),
+            case ets:info(Clients, size) of
+
+                Size when Size >= ClientsLimit ->
+                    {error, {router_error, client_slots_limit}};
+
+                _Otherwise ->
+                    case supervisor:start_child(Supervisor, [Sid | Args]) of
+                        {ok, Pid}      -> erlang:monitor(process, Pid),
+                                          ets:insert(Clients, {Sid, Pid}),
+                                          %% So we can remove clients by Pid without expensive ets:matches.
+                                          ets:insert(Clients, {Pid, Sid}),
+                                          inc(?TOTAL_SPAWNS),
+                                          inc(?ROUTER_CLIENT_NUM),
+                                          {ok, Sid};
+                        {error, Error} -> ErrorMsg = hive_error_utils:format("Unable to spawn new client process: ~p",
+                                                                             [Error]),
+                                          lager:warning(ErrorMsg),
+                                          {error, {router_error, ErrorMsg}}
+                    end
             end;
         false ->
             ErrorMsg = <<"Unable to spawn new client process: Hive Router is not accepting connections!">>,
             {error, {router_error, ErrorMsg}}
+
     end.
 
 remove_client(Pid, Clients, Reason) ->

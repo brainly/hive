@@ -27,6 +27,10 @@ init({tcp, http}, Request, _Options = [HBTimeout, ReconnectTimeout, Transports])
                         {ok, Sid}      ->
                             {ok, Req, {initialize_handshake, handshake(Sid, SocketIOOptions)}};
 
+                        {error, {router_error, client_slots_limit}} ->
+                            Req2 = reply(403, <<"">>, Req),
+                            {shutdown, Req2, internal_error};
+
                         {error, {Code, Error}} ->
                             inc(?HTTP_ERRORS),
                             lager:debug("Hive Server encountered an error: ~p", [{Code, Error}]),
