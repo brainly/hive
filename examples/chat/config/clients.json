@@ -57,14 +57,14 @@
 		"args" : "Disconnected!"
 	    },
 	    {
-		"hook" : "cp.put",
+		"hook" : "hp.put",
 		"args" : {
 		    "connector" : "backend",
 		    "endpoint" : "/leave"
 		}
 	    },
 	    {
-		"hook" : "cp.put",
+		"hook" : "hp.put",
 		"args" : {
 		    "connector" : "backend",
 		    "endpoint" : "/cleanup"
@@ -93,7 +93,7 @@
 
 	"authorize" : [
 	    {
-		"hook" : "cp.post",
+		"hook" : "hp.post",
 		"args" : {
 		    "connector" : "backend",
 		    "endpoint" : "/authorize"
@@ -111,7 +111,7 @@
 		"args" : "public"
 	    },
 	    {
-		"hook" : "cp.post",
+		"hook" : "hp.post",
 		"args" : {
 		    "connector" : "backend",
 		    "endpoint" : "/join"
@@ -125,7 +125,7 @@
 
 	"publish_msg" : [
 	    {
-		"hook" : "cp.put",
+		"hook" : "hp.put",
 		"args" : {
 		    "connector" : "backend",
 		    "endpoint" : "/publish"
@@ -139,7 +139,7 @@
 		"args" : "public"
 	    },
 	    {
-		"hook" : "cp.post",
+		"hook" : "hp.post",
 		"args" : {
 		    "connector" : "backend",
 		    "endpoint" : "/leave"

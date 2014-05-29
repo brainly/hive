@@ -4,11 +4,11 @@
 %% NOTE Each of these has to have a distinct name.
 
 %% Hive related counters:
--define(HIVE_UPTIME,            <<"hive.uptime">>).
--define(HIVE_ERRORS,            <<"hive.errors">>).
+-define(HIVE_UPTIME,             <<"hive.uptime">>).
+-define(HIVE_ERRORS,             <<"hive.errors">>).
 -define(TOTAL_PROCESSES,         <<"hive.total_processes">>).
--define(HIVE_PLUGINS,           <<"hive.plugins">>).
--define(HIVE_PLUGIN_ERRORS,     <<"hive.plugin_errors">>).
+-define(HIVE_PLUGINS,            <<"hive.plugins">>).
+-define(HIVE_PLUGIN_ERRORS,      <<"hive.plugin_errors">>).
 -define(CONFIG_ERRORS,           <<"hive.config_errors">>).
 
 %% Hive memory usage related:
@@ -56,10 +56,10 @@
 -define(TOTAL_EVENT_ERRORS,      <<"clients.events.errors">>).
 -define(EXTERNAL_EVENTS,         <<"clients.events.external">>).
 -define(INTERNAL_EVENTS,         <<"clients.events.internal">>).
--define(HIVE_EVENTS,            <<"clients.events.control">>).
+-define(HIVE_EVENTS,             <<"clients.events.control">>).
 -define(INTERNAL_EVENT_ERRORS,   <<"clients.events.internal_errors">>).
 -define(EXTERNAL_EVENT_ERRORS,   <<"clients.events.external_errors">>).
--define(HIVE_EVENT_ERRORS,      <<"clients.events.control_errors">>).
+-define(HIVE_EVENT_ERRORS,       <<"clients.events.control_errors">>).
 
 %% HTTP/WS related counters:
 -define(HTTP_REQUESTS,           <<"clients.transports.http.requests">>).
@@ -80,9 +80,9 @@
 -define(HOOK_CALLS,              <<"clients.hooks.calls">>).
 -define(HOOK_ERRORS,             <<"clients.hooks.errors">>).
 
--define(HOOK_CP_PUT,             <<"clients.hooks.cp.put">>).
--define(HOOK_CP_POST,            <<"clients.hooks.cp.post">>).
--define(HOOK_CP_GET,             <<"clients.hooks.cp.get">>).
+-define(HOOK_HP_PUT,             <<"clients.hooks.hp.put">>).
+-define(HOOK_HP_POST,            <<"clients.hooks.hp.post">>).
+-define(HOOK_HP_GET,             <<"clients.hooks.hp.get">>).
 
 -define(HOOK_PUBSUB_PUB,         <<"clients.hooks.pubsub.publish">>).
 -define(HOOK_PUBSUB_SUB,         <<"clients.hooks.pubsub.subscribe">>).
@@ -91,9 +91,9 @@
 -define(HOOK_EVENT_CALLS,        <<"clients.hooks.$(name).calls">>).
 -define(HOOK_EVENT_ERRORS,       <<"clients.hooks.$(name).errors">>).
 
--define(HOOK_EVENT_CP_PUT,       <<"clients.hooks.$(name).cp.put">>).
--define(HOOK_EVENT_CP_POST,      <<"clients.hooks.$(name).cp.post">>).
--define(HOOK_EVENT_CP_GET,       <<"clients.hooks.$(name).cp.get">>).
+-define(HOOK_EVENT_HP_PUT,       <<"clients.hooks.$(name).hp.put">>).
+-define(HOOK_EVENT_HP_POST,      <<"clients.hooks.$(name).hp.post">>).
+-define(HOOK_EVENT_HP_GET,       <<"clients.hooks.$(name).hp.get">>).
 
 -define(HOOK_EVENT_PUBSUB_PUB,   <<"clients.hooks.$(name).pubsub.publish">>).
 -define(HOOK_EVENT_PUBSUB_SUB,   <<"clients.hooks.$(name).pubsub.subscribe">>).
@@ -154,8 +154,8 @@
 %% Hive API counters:
 -define(API_REQUESTS,            <<"api.requests">>).
 -define(API_ERRORS,              <<"api.errors">>).
--define(API_HIVE_REQUESTS,      <<"api.hive.requests">>).
--define(API_HIVE_ERRORS,        <<"api.hive.errors">>).
+-define(API_HIVE_REQUESTS,       <<"api.hive.requests">>).
+-define(API_HIVE_ERRORS,         <<"api.hive.errors">>).
 -define(API_ROUTER_REQUESTS,     <<"api.router.requests">>).
 -define(API_ROUTER_ERRORS,       <<"api.router.errors">>).
 -define(API_PUBSUB_REQUESTS,     <<"api.pubsub.requests">>).
@@ -174,7 +174,7 @@
                    ?HTTP_REQUESTS, ?HTTP_ERRORS, ?HTTP_2XX, ?HTTP_4XX, ?HTTP_5XX, ?HTTP_UNKNOWN, ?HTTP_HANG, ?WS_REQUESTS, ?WS_ERRORS,
                    ?WS_MSGS, ?WS_OK, ?WS_BAD, ?WS_HANG, ?HOOK_CALLS, ?HOOK_ERRORS, ?HOOK_PUBSUB_SUB, ?HOOK_PUBSUB_UNSUB, ?API_PUBSUB_REQUESTS,
                    ?CONNECTORS_REQUESTS, ?CONNECTORS_ERRORS, ?CONNECTORS_POOLS, ?CONNECTORS_SPAWN, ?CONNECTORS_STOP, ?CONNECTORS_DO_SAFE,
-                   ?CONNECTORS_RENT, ?HOOK_PUBSUB_PUB, ?API_CLIENTS_ERRORS, ?HOOK_CP_POST, ?HOOK_CP_PUT, ?HOOK_CP_GET, ?TOTAL_EVENT_ERRORS,
+                   ?CONNECTORS_RENT, ?HOOK_PUBSUB_PUB, ?API_CLIENTS_ERRORS, ?HOOK_HP_POST, ?HOOK_HP_PUT, ?HOOK_HP_GET, ?TOTAL_EVENT_ERRORS,
                    ?CONNECTORS_RETURN, ?PUBSUB_REQUESTS, ?PUBSUB_ERRORS, ?PUBSUB_CHANNELS, ?PUBSUB_STATUS, ?PUBSUB_SUBSCRIBE,
                    ?PUBSUB_UNSUBSCRIBE, ?PUBSUB_JOIN, ?PUBSUB_LEAVE, ?PUBSUB_PUBLISH, ?PUBSUB_PUBLISHED, ?API_REQUESTS, ?API_ERRORS,
                    ?API_PUBSUB_ERRORS, ?API_CLIENTS_REQUESTS, ?API_HIVE_REQUESTS, ?API_HIVE_ERRORS, ?API_ROUTER_REQUESTS,
