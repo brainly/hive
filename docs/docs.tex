@@ -1,4 +1,4 @@
-% Created 2014-05-29 czw 10:48
+% Created 2014-05-29 czw 11:18
 \documentclass[a4paper]{article}
 \usepackage{fontspec}
 \usepackage{fixltx2e}
@@ -87,7 +87,7 @@ The libraries, listed belowe, are downloaded automatically by Rebar via \textbf{
 \item \textbf{Ibrowse} - \href{https://github.com/cmullaparthi/ibrowse}{an HTTP client}; Hive uses version \textbf{v4.0.2}.
 \end{itemize}
 
-<<\ref{folsom}>>(INVISIBLE)
+\label{ref-folsom}
 
 \begin{itemize}
 \item \textbf{Folsom} - \href{https://github.com/boundary/folsom}{a monitoring tool}; Hive requires version \textbf{0.7.4}.
@@ -312,7 +312,7 @@ hive_root_sup                        - Top-level Hive supervisor.
 The Hive server employs a \textbf{graceful termination} strategy - after requesting a server termination Clients are asked \emph{nicely} to close their connections and after a certain timeout Hive forces their termination by killing them. No new connections are accepted during the graceful termination period.
 
 \noindent
-The configuration parameters responsible for the graceful termination behaviour are described \ref{graceful_config}.
+The configuration parameters responsible for the graceful termination behaviour are described \hyperref[ref-graceful_config]{here}.
 
 \noindent
 The graceful termination RESTful API is described \hyperref[sec-6-1-1]{here}.
@@ -469,7 +469,7 @@ null, "null", "*.*", "http://zadane.pl"
 
 
 
-<<\ref{graceful_config}>>(INVISIBLE)
+\label{ref-graceful_config}
 
 \begin{itemize}
 \item \texttt{hive.graceful\_termination\_timeout} - the time (\textbf{in milliseconds}) after which Client Workers will be forced to terminate on server termination.
@@ -552,7 +552,7 @@ Required parameters:
 \item \texttt{clients.state} - the descriptor of a State Manager to be used by the Client processes. It has to be \textbf{a JSON object} containing exactly three fields: \texttt{state\_manager}, \texttt{initial\_value} and \texttt{args}. State Management and available State Managers are described in greater detail in \hyperref[sec-7-1-5]{a later section}.
 \end{itemize}
 
-<<\ref{events_config}>>(INVISIBLE)
+\label{ref-events_config}
 
 \begin{itemize}
 \item \texttt{clients.actions} - \textbf{a JSON object} listing various \textbf{internal event} dispatchers recognized by the Client Workers on a \textbf{per-action} basis, that is, each field names an action will trigger Hive Internal Event dispatchers listed in this field's value. The value has to be \textbf{a JavaScript array} of Hive Internal Event dispatcher descriptors, each of which has to be \textbf{a JSON object} that defines several fields:
@@ -562,7 +562,7 @@ Required parameters:
 \end{itemize}
 \end{itemize}
 
-<<\ref{hooks_config}>>(INVISIBLE)
+\label{ref-hooks_config}
 
 \begin{itemize}
 \item \texttt{clients.hooks} - \textbf{a JSON object} containing various Hive Hook definitions on a \textbf{per-event} basis, that is, each field of the JSON object names an event that will trigger Hive Hooks listed in this field's value. The value has to be \textbf{a JavaScript array} of Hive Hook descriptors, each of which has to be \textbf{a JSON object} that defines several fields:
@@ -620,7 +620,7 @@ Required parameters:
 \item \texttt{connectors.rent\_timeout} - the timeout \textbf{in milliseconds} used when waiting for an available worker in a given connectors pool. If there are no available workers in a pool, the renting process will wait for at most this much time. It has to be \textbf{a positive integer}.
 \end{itemize}
 
-<<\ref{connectors_config}>>(INVISIBLE)
+\label{ref-connectors_config}
 
 \begin{itemize}
 \item \texttt{connectors.pools} - \textbf{a JSON object} of \textbf{name/pool descriptor} pairs - pairs of \textbf{strings} representing pool names and \textbf{JSON objects} representing pools themselves. Each pool descriptor has to define several required parameters:
@@ -663,7 +663,7 @@ This subsection describes the \textbf{pubsub} portion of the configuration file.
 \noindent
 Required parameters:
 
-<<\ref{pubsub_config}>>(INVISIBLE)
+\label{ref-pubsub_config}
 
 \begin{itemize}
 \item \texttt{pubsub.channels} - \textbf{a JSON object} containing various Hive Pub-Sub channel definitions on \textbf{a per-prefix} basis, that is, each field of the JSON object names a Pub-Sub channel prefix which might later generate concrete Pub-Sub channels. Each \textbf{channel descriptor} has to be \textbf{a JSON object} that defines several fields:
@@ -861,7 +861,7 @@ For convenience each configuration section can be stored in its own, separate fi
 \section{Monitoring \& Statistics}
 \label{sec-4}
 
-This section describes the monitoring facilities of the Hive server. Statistics gathering is performed by changing values of various in-memory counters during Hive run-time, using \ref{folsom} external library. All counters are represented by \textbf{non-negative integers}, and each of them corresponds to a specific metric of the Hive server.
+This section describes the monitoring facilities of the Hive server. Statistics gathering is performed by changing values of various in-memory counters during Hive run-time, using \hyperref[ref-folsom]{Folsom} external library. All counters are represented by \textbf{non-negative integers}, and each of them corresponds to a specific metric of the Hive server.
 \subsection{Statistics structure}
 \label{sec-4-1}
 \label{ref-statistics-structure}
@@ -1356,7 +1356,7 @@ This section describes how error handling and logging is performed in the Hive s
 \subsection{Log}
 \label{sec-5-1}
 
-Hive uses \href{https://github.com/basho/lager}{Lager} for logging purposes and therefore all of its quirks apply. The only difference is the configuration, which is intercepted by Hive and greatly simplified for convenience (described \hyperref[sec-3-1-8]{ref:log-config}>>][earlier]]).
+Hive uses \href{https://github.com/basho/lager}{Lager} for logging purposes and therefore all of its quirks apply. The only difference is the configuration, which is intercepted by Hive and greatly simplified for convenience (described \hyperref[sec-3-1-8]{earlier}).
 
 \noindent
 In general, the logging back-ends use a fairly simple log format shown below:
@@ -1573,7 +1573,7 @@ For example:
 This section describes the RESTful API exposed by the Hive Server.
 
 \noindent
-The API is available on the same host as the rest of the Hive server, on a \ref{api-config} port. The structure of the Hive Monitor URL is as follows:
+The API is available on the same host as the rest of the Hive server, on a \hyperref[ref-api-config]{configured} port. The structure of the Hive Monitor URL is as follows:
 
 
 \begin{minted}[]{javascript}
@@ -1944,7 +1944,7 @@ This subsection and its subsections describe the Hive Pub-Sub facility.
 \subsubsection{Channel templates}
 \label{sec-7-3-1}
 
-A set of Pub-Sub channel templates can be defined in the Hive configuration file. Each template consists of a \textbf{channel prefix} - the first part of the channel ID, and a \textbf{channel descriptor} - as described \ref{pubsub_config}. At runtime, channels are created using one of the templates determined by their channel ID. Any attempt at creating a channel that doesn't follow any channel template defined in the configuration file will fail and an error response will be produced.
+A set of Pub-Sub channel templates can be defined in the Hive configuration file. Each template consists of a \textbf{channel prefix} - the first part of the channel ID, and a \textbf{channel descriptor} - as described \hyperref[ref-pubsub_config]{here}. At runtime, channels are created using one of the templates determined by their channel ID. Any attempt at creating a channel that doesn't follow any channel template defined in the configuration file will fail and an error response will be produced.
 \subsubsection{Channel types}
 \label{sec-7-3-2}
 
@@ -2403,7 +2403,7 @@ Example triggering event (causes the Client to publish events on Hive Pub-Sub ch
 \label{sec-8-2-7}
 \label{ref-hive_protocol_hook}
 
-Performs a synchronous request, similar in semantics to an HTTP GET, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed \ref{cp_connector}).
+Performs a synchronous request, similar in semantics to an HTTP GET, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed \hyperref[ref-cp_connector]{here}).
 
 
 \begin{itemize}
@@ -2428,7 +2428,7 @@ Example declaration:
 \subsubsection{\texttt{hp.put}}
 \label{sec-8-2-8}
 
-Performs an asynchronous request, similar in semantics to an HTTP PUT, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed \ref{cp_connector}).
+Performs an asynchronous request, similar in semantics to an HTTP PUT, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed \hyperref[ref-cp_connector]{here}).
 
 
 \begin{itemize}
@@ -2453,7 +2453,7 @@ Example declaration:
 \subsubsection{\texttt{hp.post}}
 \label{sec-8-2-9}
 
-Performs a synchronous request, similar in semantics to an HTTP POST, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed \ref{cp_connector}).
+Performs a synchronous request, similar in semantics to an HTTP POST, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed \hyperref[ref-cp_connector]{here}).
 
 
 \begin{itemize}
@@ -2657,7 +2657,7 @@ Example declaration:
 \subsubsection{\texttt{action.add\_hooks}}
 \label{sec-8-3-6}
 
-Dynamically validates, initializes and adds hooks to the Client worker hooks. Assumes \texttt{args} to be \textbf{a JavaScript array} of hook descriptors (same as described \ref{hooks_config}). Example event:
+Dynamically validates, initializes and adds hooks to the Client worker hooks. Assumes \texttt{args} to be \textbf{a JavaScript array} of hook descriptors (same as described \hyperref[ref-hooks_config]{before}). Example event:
 
 \begin{minted}[]{javascript}
 {
@@ -2716,7 +2716,7 @@ Example declaration:
 \subsubsection{\texttt{action.start\_connectors}}
 \label{sec-8-3-8}
 
-Starts Hive Connector pools. Assumes \texttt{args} to be \textbf{a JSON object} representing name/Connector descriptor pairs (the same as described \ref{connectors_config}). Example event:
+Starts Hive Connector pools. Assumes \texttt{args} to be \textbf{a JSON object} representing name/Connector descriptor pairs (the same as described \hyperref[ref-connectors_config]{before}). Example event:
 
 
 \begin{minted}[]{javascript}
@@ -2806,7 +2806,7 @@ The Redis database connector.
 \end{itemize}
 \subsubsection{\texttt{connector.http}}
 \label{sec-8-4-2}
-\label{ref-hp_connectors}
+\label{ref-cp_connectors}
 
 A Hive Protocol compatible HTTP connector. Provides Hive Protocol interface over HTTP. All data is transfered in the bodies of the HTTP requests with no additional encapsulation or serialization.
 
