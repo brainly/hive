@@ -1,4 +1,4 @@
--module(cp_hook).
+-module(hp_hook).
 -author('kajetan.rzepecki@zadane.pl').
 
 -export([load/0, unload/1, validate/2]).
@@ -8,9 +8,9 @@
 
 %% External functions:
 load() ->
-    {ok, [{<<"cp.post">>, fun init_post/1},
-          {<<"cp.get">>, fun init_get/1},
-          {<<"cp.put">>, fun init_put/1}], undefined}.
+    {ok, [{<<"hp.post">>, fun init_post/1},
+          {<<"hp.get">>, fun init_get/1},
+          {<<"hp.put">>, fun init_put/1}], undefined}.
 
 unload(_State) ->
     ok.
@@ -51,8 +51,8 @@ init_get(_Args) ->
     {ok, fun get/4}.
 
 get(Args, Event, _Trigger, State) ->
-    inc(?HOOK_CP_GET),
-    inc(?HOOK_EVENT_CP_GET, Event),
+    inc(?HOOK_HP_GET),
+    inc(?HOOK_EVENT_HP_GET, Event),
     Endpoint = proplists:get_value(<<"endpoint">>, Args),
     do(fun(Worker) ->
                hive_protocol:get(Worker, Endpoint)
@@ -65,8 +65,8 @@ init_post(_Args) ->
     {ok, fun post/4}.
 
 post(Args, Event, Trigger, State) ->
-    inc(?HOOK_CP_POST),
-    inc(?HOOK_EVENT_CP_POST, Event),
+    inc(?HOOK_HP_POST),
+    inc(?HOOK_EVENT_HP_POST, Event),
     Endpoint = proplists:get_value(<<"endpoint">>, Args),
     case hive_hooks_utils:state_json(Trigger, State) of
         {ok, Data, NewState} ->
@@ -94,8 +94,8 @@ init_put(_Args) ->
     {ok, fun put/4}.
 
 put(Args, Event, Trigger, State) ->
-    inc(?HOOK_CP_PUT),
-    inc(?HOOK_EVENT_CP_PUT, Event),
+    inc(?HOOK_HP_PUT),
+    inc(?HOOK_EVENT_HP_PUT, Event),
     Endpoint = proplists:get_value(<<"endpoint">>, Args),
     case hive_hooks_utils:state_json(Trigger, State) of
         {ok, Data, NewState} ->
