@@ -933,23 +933,23 @@ Additionally, the same set of counters is defined on a per-hook-event basis. For
 
 - =clients.hooks.$(name).errors= - the total number of Hive Hooks errors encountered by the Client processes.
 
-**** =clients.hooks.cp=
+**** =clients.hooks.hp=
 The Hive Protocol hook related metrics.
 
-- =clients.hooks.cp.get= - the total number of =cp.get= Hook invocations.
+- =clients.hooks.hp.get= - the total number of =hp.get= Hook invocations.
 
-- =clients.hooks.cp.put= - the total number of =cp.put= Hook invocations.
+- =clients.hooks.hp.put= - the total number of =hp.put= Hook invocations.
 
-- =clients.hooks.cp.post= - the total number of =cp.post= Hook invocations.
+- =clients.hooks.hp.post= - the total number of =hp.post= Hook invocations.
 
 #+latex: \noindent
 Additionally, the same set of counters is defined on a per-hook-event basis. For an event named *$(name)*, the folowing counters will be added to the Monitor. Due to the dynamic nature of the hooks and their per-client character, *counters described below are added on use* and may not be included in the Monitor output at all times:
 
-- =clients.hooks.$(name).cp.get= - the total number of =cp.get= Hook invocations.
+- =clients.hooks.$(name).hp.get= - the total number of =hp.get= Hook invocations.
 
-- =clients.hooks.$(name).cp.put= - the total number of =cp.put= Hook invocations.
+- =clients.hooks.$(name).hp.put= - the total number of =hp.put= Hook invocations.
 
-- =clients.hooks.$(name).cp.post= - the total number of =cp.post= Hook invocations.
+- =clients.hooks.$(name).hp.post= - the total number of =hp.post= Hook invocations.
 
 **** =clients.hooks.pubsub=
 The Hive Pub-Sub hook related metrics.
@@ -1269,7 +1269,7 @@ This section lists and gives a short destription of various error codes used thr
 
 - =tcp_error= - Hive TCP Connector related error, usually signalizes a TCP socket error encountered by the connector.
 
-- =cp_error= - Hive Protocol Hook related error, usually signalizes a problem with the backend that Hive talks to.
+- =hp_error= - Hive Protocol Hook related error, usually signalizes a problem with the backend that Hive talks to.
 
 - =redis_error= - Hive Redis Connector related error, usually signalizes problems with the Redis database encountered by the connector.
 
@@ -1760,7 +1760,7 @@ An example of a Hive Protocol based communication is presented below:
   // using ping hook configured as follows:
   "ping" : [
       {
-          "hook" : "cp.post",
+          "hook" : "hp.post",
           "args" : {
               "endpoint" : "ping.php",
               "connector" : "php_backend"
@@ -2047,7 +2047,7 @@ Example triggering event (causes the Client to publish events on Hive Pub-Sub ch
   }
 #+end_src
 
-*** =cp.get=
+*** =hp.get=
 # <<<ref:hive_protocol_hook>>>
 Performs a synchronous request, similar in semantics to an HTTP GET, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed [[ref:cp_connector][here]]).
 
@@ -2063,7 +2063,7 @@ Performs a synchronous request, similar in semantics to an HTTP GET, to a given 
 Example declaration:
 #+begin_src javascript
 {
-    "hook" : "cp.get",
+    "hook" : "hp.get",
     "args" : {
         "endpoint" : "/",
         "connector" : "connector1"
@@ -2071,7 +2071,7 @@ Example declaration:
 }
 #+end_src
 
-*** =cp.put=
+*** =hp.put=
 Performs an asynchronous request, similar in semantics to an HTTP PUT, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed [[ref:cp_connector][here]]).
 
 - metadata used - the Client workers internal state (Session ID, stored values, event that triggered the hook),
@@ -2086,7 +2086,7 @@ Performs an asynchronous request, similar in semantics to an HTTP PUT, to a give
 Example declaration:
 #+begin_src javascript
 {
-    "hook" : "cp.put",
+    "hook" : "hp.put",
     "args" : {
         "endpoint" : "/",
         "connector" : "connector1"
@@ -2094,7 +2094,7 @@ Example declaration:
 }
 #+end_src
 
-*** =cp.post=
+*** =hp.post=
 Performs a synchronous request, similar in semantics to an HTTP POST, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed [[ref:cp_connector][here]]).
 
 - metadata used - the Client workers internal state (Session ID, stored values, event that triggered the hook),
@@ -2109,7 +2109,7 @@ Performs a synchronous request, similar in semantics to an HTTP POST, to a given
 Example declaration:
 #+begin_src javascript
 {
-    "hook" : "cp.post",
+    "hook" : "hp.post",
     "args" : {
         "endpoint" : "/",
         "connector" : "connector1"
@@ -2389,7 +2389,7 @@ The Redis database connector.
   + =max_reconnect_timeout= - *a non-negative integer*, the timeout *in milliseconds* after which a connection is assumed to be dead and no further reconnection attempts should be performed.
 
 *** =connector.http=
-# <<<ref:cp_connectors>>>
+# <<<ref:hp_connectors>>>
 A Hive Protocol compatible HTTP connector. Provides Hive Protocol interface over HTTP. All data is transfered in the bodies of the HTTP requests with no additional encapsulation or serialization.
 
 - =connector= - =connector.http=
