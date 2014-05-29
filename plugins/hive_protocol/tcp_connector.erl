@@ -61,7 +61,7 @@ validate(<<"connector.tcp">>, Descriptor) ->
     Args = proplists:get_value(<<"args">>, Descriptor),
     case jesse:validate_with_schema(jsonx:decode(Schema), Args) of
         {ok, _Args} ->
-            %% NOTE TCP connetor is used to listen on the hive side. It's assumed to be fine.
+            %% NOTE TCP conncetor is used to listen on the hive side. It's assumed to be fine.
             ok;
 
         {error, Error} ->
@@ -82,7 +82,7 @@ checkout(Pool, Timeout) ->
     gen_server:call(Pool, {checkout, Timeout}).
 
 checkin(Pool, Worker) ->
-    gen_server:call(Pool, {checkin, Worker}).
+    gen_server:cast(Pool, {checkin, Worker}).
 
 transaction(Pool, Transaction) ->
     gen_server:call(Pool, {transaction, Transaction}).
@@ -95,7 +95,7 @@ remove(Pool, Worker) ->
     gen_server:call(Pool, {remove, Worker}).
 
 add(Pool, Worker) ->
-    gen_server:call(Pool, {add, Worker}).
+    gen_server:cast(Pool, {add, Worker}).
 
 %% Gen Server callbacks:
 init({PoolArgs, WorkerArgs}) ->
@@ -149,15 +149,6 @@ handle_call({checkout, Timeout}, From, State) ->
             {reply, {error, Error}, State}
     end;
 
-handle_call({checkin, Worker}, _From, State) ->
-    case checkin_worker(Worker, State) of
-        {ok, NewState} ->
-            {reply, ok, NewState};
-
-        {error, Error} ->
-            {reply, {error, Error}, State}
-    end;
-
 handle_call({transaction, Transaction}, From, State) ->
     case checkout_worker(State) of
         retry_later ->
@@ -181,30 +172,41 @@ handle_call({transaction, Transaction}, From, State) ->
 handle_call({remove, Worker}, _From, State) ->
     {reply, ok, remove_worker(Worker, State)};
 
-handle_call({add, Worker}, _From, State) ->
-    Workers = State#tcp_state.workers,
-    case checkin_worker(Worker, State#tcp_state{workers = [Worker | Workers]}) of
-        {ok, NewState} ->
-            {reply, ok, NewState};
-
-        {error, Error} ->
-            {reply, {error, Error}, State}
-    end;
-
 handle_call(stop, _From, State) ->
     {stop, shutdown, State};
 
 handle_call(Message, _From, State) ->
     ?inc(?CONN_TCP_ERRORS),
-    lager:warning("Unhandled Hive TCP Connector cast: ~p", [Message]),
+    lager:warning("Unhandled Hive TCP Connector call: ~p", [Message]),
     {reply, ok, State}.
+
+handle_cast({checkin, Worker}, State) ->
+    case checkin_worker(Worker, State) of
+        {ok, NewState} ->
+            {noreply, NewState};
+
+        {error, Error} ->
+            lager:error("Hive TCP Connector encountered an error: ~p", [Error]),
+            {noreply, State}
+    end;
+
+handle_cast({add, Worker}, State) ->
+    Workers = State#tcp_state.workers,
+    case checkin_worker(Worker, State#tcp_state{workers = [Worker | Workers]}) of
+        {ok, NewState} ->
+            {noreply, NewState};
+
+        {error, Error} ->
+            lager:error("Hive TCP Connector encountered an error: ~p", [Error]),
+            {noreply, State}
+    end;
 
 handle_cast(Message, State) ->
     ?inc(?CONN_TCP_ERRORS),
     lager:warning("Unhandled Hive TCP Connector cast: ~p", [Message]),
     {noreply, State}.
 
-handle_info({timeout, _Ref, {checkout_timout, From}}, State) ->
+handle_info({timeout, _Ref, {checkout_timeout, From}}, State) ->
     PoolName = State#tcp_state.pool_name,
     ?inc(?CONN_TCP_ERRORS),
     ErrorMsg = hive_error_utils:format("Hive TCP Connector ~s's request timed out!", [PoolName]),
@@ -242,9 +244,9 @@ checkin_worker(Worker, State) ->
     case queue:out(Froms) of
         %% NOTE We have an ongoing transaction which has to be carried out...
         {{value, {From, Transaction}}, NewFroms} when is_function(Transaction, 1) ->
+            %% FIXME This shouldn't run here as it may clog the entire connector up.
             gen_server:reply(From, Transaction(Worker)),
-            Queue = State#tcp_state.workers_queue,
-            {ok, State#tcp_state{workers_queue = queue:in(Worker, Queue), froms = NewFroms}};
+            checkin_worker(Worker, State#tcp_state{froms = NewFroms});
 
         %% NOTE ...or an ongoing checkout request...
         {{value, {From, Timer}}, NewFroms} ->
