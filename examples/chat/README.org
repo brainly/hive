@@ -17,12 +17,13 @@ We'll start with a short discussion of the general server setup:
       "websocket_ping_timeout" : 2000,
 
       "max_processes" : 15000,
+      "max_client_slots" : 1000,
       "graceful_termination_timeout" : 12000
   }
 #+end_src
 
 First, we set up the number of requests acceptors and configure a listening port - Hive will listen on port =8080=. We also set =null= and =ws://localhost= as accepted origins, as we're going to run the client locally and spawn some automated bots later (stay tuned).
-We also limit the total number of processes available to the Erlang VM and set up various other things described in detail in the documentation.
+We also limit the total number of Erlang processes and available clients slots, and set up various other things described in detail in the documentation.
 
 ** Setting up the Redis database
 Next, we'll set up a Redis database connection using a Hive Service Connector pool. The following configuration goes to the =connectors.pools= section of the configuration file:
