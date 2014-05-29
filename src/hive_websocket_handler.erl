@@ -45,14 +45,12 @@ websocket_init(_Transport, Request, _Options) ->
             {shutdown, Request3}
     end.
 
-websocket_terminate({error, Reason}, _Request, State) ->
-    log_terminate({error, Reason}, State);
+websocket_terminate(shutdown, _Request, _State) ->
+    ok;
 
-websocket_terminate({remote, Reason}, _Request, State) ->
-    log_terminate({remote, Reason}, State);
+websocket_terminate(Reason, _Request, State) ->
+    log_terminate(Reason, State).
 
-websocket_terminate(_Reason, _Request, _State) ->
-    ok.
 
 %% Cowboy websocket handler handlers
 websocket_info(finalize_handshake, Request, State) ->
