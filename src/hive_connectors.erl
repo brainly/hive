@@ -4,7 +4,7 @@
 
 -export([start_link/1, init/1, terminate/2]).
 -export([handle_call/3, handle_cast/2, handle_info/2, code_change/3]).
--export([do/2, do_safe/2, do_unsafe/2, rent/1, return/2]).
+-export([use/1, do/2, do_safe/2, do_unsafe/2, rent/1, return/2]).
 -export([start_connector/1, start_connector/4, stop_connector/1]).
 -export([start_connectors/1, stop_connectors/1]).
 
@@ -40,15 +40,24 @@ terminate(Reason, State) ->
     ok.
 
 %% External functions:
+use(PoolName) ->
+    inc(?CONNECTORS_REQUESTS),
+    inc(?CONNECTORS_USE),
+    gen_server:call(?MODULE, {use, PoolName}).
+
 do(Pool, Transaction) ->
     do_safe(Pool, Transaction).
 
-do_safe(Pool, Transaction) ->
+do_safe({connector, PoolPid, ControlerModule}, Transaction) ->
     inc(?CONNECTORS_REQUESTS),
     inc(?CONNECTORS_DO_SAFE),
-    gen_server:call(?MODULE, {transaction, Pool, Transaction}).
+    %% NOTE Delegates work to the pool returned by ?MODULE:use(PoolName)
+    ControlerModule:transaction(PoolPid, Transaction);
 
-do_unsafe(Pool, Transaction) ->
+do_safe(PoolName, Transaction) ->
+    do_safe(use(PoolName), Transaction).
+
+do_unsafe(Pool = {connector, _PoolPid, _ControlerModule}, Transaction) ->
     %% NOTE This is an unsafe operation, as it might leak workers in case of an error.
     %% NOTE If you need to be sure that Transaction is actually a transaction, use
     %% NOTE do_safe/2 instead.
@@ -62,18 +71,29 @@ do_unsafe(Pool, Transaction) ->
             Ret = Transaction(Worker),
             return(Pool, Worker),
             Ret
-    end.
+    end;
 
-rent(Pool) ->
-    %% NOTE The limiting factor here is the checkout_timeout, so 'infinity' is fine.
+do_unsafe(PoolName, Transaction) ->
+    do_unsafe(use(PoolName), Transaction).
+
+rent({connector, PoolPid, ControlerModule}) ->
     inc(?CONNECTORS_REQUESTS),
     inc(?CONNECTORS_RENT),
-    gen_server:call(?MODULE, {checkout, Pool}, infinity).
+    RTimeout = hive_config:get(<<"connectors.rent_timeout">>), %% FIXME This could be faster...
+    %% NOTE Delegates work to the pool returned by ?MODULE:use(PoolName)
+    ControlerModule:checkout(PoolPid, RTimeout);
 
-return(Pool, Worker) ->
+rent(PoolName) ->
+    rent(use(PoolName)).
+
+return({connector, PoolPid, ControlerModule}, Worker) ->
     inc(?CONNECTORS_REQUESTS),
     inc(?CONNECTORS_RETURN),
-    gen_server:call(?MODULE, {checkin, Pool, Worker}).
+    %% NOTE Delegates work to the pool returned by ?MODULE:use(PoolName)
+    ControlerModule:checkin(PoolPid, Worker);
+
+return(PoolName, Worker) ->
+    return(use(PoolName), Worker).
 
 stop_connector(Name) ->
     inc(?CONNECTORS_REQUESTS),
@@ -106,7 +126,7 @@ start_connector(PoolName, Controler, PoolArgs, WorkerArgs) ->
     case Controler:start_pool(PoolArgs, WorkerArgs) of
         {error, Error} -> inc(?CONNECTORS_ERRORS),
                           ErrorMsg = hive_error_utils:format("Unable to start Hive Connector ~s: ~p",
-                                                              [PoolName, Error]),
+                                                             [PoolName, Error]),
                           lager:error(ErrorMsg),
                           {error, {connectors_error, ErrorMsg}};
         Ret            -> lager:notice("Hive Connector ~s started!", [PoolName]),
@@ -114,27 +134,10 @@ start_connector(PoolName, Controler, PoolArgs, WorkerArgs) ->
     end.
 
 %% Gen Server handlers:
-handle_call({checkout, Pool}, _From, State) ->
-    case lookup(Pool, State) of
-        undefined -> {reply, {error, {bad_connector_id, Pool}}, State};
-        P         -> {reply, checkout(P, State), State}
-    end;
-
-handle_call({checkin, Pool, Worker}, _From, State) ->
-    case lookup(Pool, State) of
-        undefined -> {reply, {error, {bad_connector_id, Pool}}, State};
-        P         -> {reply, checkin(P, Worker, State), State}
-    end;
-
-handle_call({transaction, Pool, Transaction}, _From, State) ->
-    %% NOTE Transiaction is a function (and a closure most likely),
-    %% NOTE this might cause all kinds of fun stuff when distributed
-    %% NOTE (excessive copying and lot's of IO included).
-    %% NOTE You might want to avoid using these and use unsafe transaction
-    %% NOTE or rent/return instead.
-    case lookup(Pool, State) of
-        undefined -> {reply, {error, {bad_connector_id, Pool}}, State};
-        P         -> {reply, transaction(P, Transaction, State), State}
+handle_call({use, PoolName}, _From, State) ->
+    case lookup(PoolName, State) of
+        undefined -> {reply, {error, {bad_connector_id, PoolName}}, State};
+        P         -> {reply, {connector, P, controler_module(P, State)}, State}
     end;
 
 handle_call({start_connector, PoolName, PoolDescriptor}, _From, State) ->
@@ -212,7 +215,7 @@ controler_module(Pool, State) ->
     case ets:lookup(State#state.pools, Pool) of
         []                          -> inc(?CONNECTORS_ERRORS),
                                        lager:warning("Tried type-checking an unknown Connector: ~p", [Pool]),
-                                       undefined;
+                                       undefined; %% FIXME Things probably can go boom.
         [{_RealName, ControlerModule}] -> ControlerModule
     end.
 
@@ -261,7 +264,7 @@ init_pool(Name, Pool) ->
                 {stop, Reason} ->
                     inc(?CONNECTORS_ERRORS),
                     ErrorMsg = hive_error_utils:format("Unable to initialize Hive Connector ~s: ~p",
-                                                        [Pool, Reason]),
+                                                       [Pool, Reason]),
                     lager:error(ErrorMsg),
                     {error, {connectors_error, ErrorMsg}};
 
@@ -288,19 +291,6 @@ start_predefined_connectors(Sup, State) ->
         ok             -> {noreply, State#state{supervisor = Sup}};
         {error, Error} -> {stop, Error, State}
     end.
-
-checkout(Pool, State) ->
-    ControlerModule = controler_module(Pool, State),
-    ControlerModule:checkout(Pool, State#state.rent_timeout).
-
-checkin(Pool, Worker, State) ->
-    ControlerModule = controler_module(Pool, State),
-    ControlerModule:checkin(Pool, Worker).
-
-transaction(PoolName, Transaction, State) ->
-    Pool = lookup(PoolName, State),
-    ControlerModule = controler_module(Pool, State),
-    ControlerModule:transaction(Pool, Transaction).
 
 stop_pool(PoolName, State) ->
     Pool = lookup(PoolName, State),
