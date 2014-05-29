@@ -1,4 +1,4 @@
-% Created 2014-05-26 pon 10:15
+% Created 2014-05-29 czw 11:18
 \documentclass[a4paper]{article}
 \usepackage{fontspec}
 \usepackage{fixltx2e}
@@ -1086,15 +1086,15 @@ Additionally, the same set of counters is defined on a per-hook-event basis. For
 \end{itemize}
 \begin{itemize}
 
-\item \texttt{clients.hooks.cp}\\
+\item \texttt{clients.hooks.hp}\\
 \label{sec-4-2-9-1}%
 The Hive Protocol hook related metrics.
 
 
 \begin{itemize}
-\item \texttt{clients.hooks.cp.get} - the total number of \texttt{cp.get} Hook invocations.
-\item \texttt{clients.hooks.cp.put} - the total number of \texttt{cp.put} Hook invocations.
-\item \texttt{clients.hooks.cp.post} - the total number of \texttt{cp.post} Hook invocations.
+\item \texttt{clients.hooks.hp.get} - the total number of \texttt{hp.get} Hook invocations.
+\item \texttt{clients.hooks.hp.put} - the total number of \texttt{hp.put} Hook invocations.
+\item \texttt{clients.hooks.hp.post} - the total number of \texttt{hp.post} Hook invocations.
 \end{itemize}
 
 \noindent
@@ -1102,9 +1102,9 @@ Additionally, the same set of counters is defined on a per-hook-event basis. For
 
 
 \begin{itemize}
-\item \texttt{clients.hooks.\$(name).cp.get} - the total number of \texttt{cp.get} Hook invocations.
-\item \texttt{clients.hooks.\$(name).cp.put} - the total number of \texttt{cp.put} Hook invocations.
-\item \texttt{clients.hooks.\$(name).cp.post} - the total number of \texttt{cp.post} Hook invocations.
+\item \texttt{clients.hooks.\$(name).hp.get} - the total number of \texttt{hp.get} Hook invocations.
+\item \texttt{clients.hooks.\$(name).hp.put} - the total number of \texttt{hp.put} Hook invocations.
+\item \texttt{clients.hooks.\$(name).hp.post} - the total number of \texttt{hp.post} Hook invocations.
 \end{itemize}
 
 
@@ -1469,7 +1469,7 @@ This section lists and gives a short destription of various error codes used thr
 \item \texttt{bad\_connector\_id} - tried accessing an invalid Hive Connector id (most likely a Hive Connector has been shut down and not restarted).
 \item \texttt{http\_error} - Hive HTTP Connector related error, usually signalizes a bad HTTP response received by the connector.
 \item \texttt{tcp\_error} - Hive TCP Connector related error, usually signalizes a TCP socket error encountered by the connector.
-\item \texttt{cp\_error} - Hive Protocol Hook related error, usually signalizes a problem with the backend that Hive talks to.
+\item \texttt{hp\_error} - Hive Protocol Hook related error, usually signalizes a problem with the backend that Hive talks to.
 \item \texttt{redis\_error} - Hive Redis Connector related error, usually signalizes problems with the Redis database encountered by the connector.
 \item \texttt{router\_error} - Hive Router related error (most likely an unhandled Hive Router request).
 \item \texttt{bad\_session\_id} - tried accessing (via Hive Router) a nonexistent Session ID.
@@ -2071,7 +2071,7 @@ An example of a Hive Protocol based communication is presented below:
 // using ping hook configured as follows:
 "ping" : [
     {
-        "hook" : "cp.post",
+        "hook" : "hp.post",
         "args" : {
             "endpoint" : "ping.php",
             "connector" : "php_backend"
@@ -2399,7 +2399,7 @@ Example triggering event (causes the Client to publish events on Hive Pub-Sub ch
     ]
 }
 \end{minted}
-\subsubsection{\texttt{cp.get}}
+\subsubsection{\texttt{hp.get}}
 \label{sec-8-2-7}
 \label{ref-hive_protocol_hook}
 
@@ -2418,14 +2418,14 @@ Example declaration:
 
 \begin{minted}[]{javascript}
 {
-    "hook" : "cp.get",
+    "hook" : "hp.get",
     "args" : {
         "endpoint" : "/",
         "connector" : "connector1"
     }
 }
 \end{minted}
-\subsubsection{\texttt{cp.put}}
+\subsubsection{\texttt{hp.put}}
 \label{sec-8-2-8}
 
 Performs an asynchronous request, similar in semantics to an HTTP PUT, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed \hyperref[ref-cp_connector]{here}).
@@ -2443,14 +2443,14 @@ Example declaration:
 
 \begin{minted}[]{javascript}
 {
-    "hook" : "cp.put",
+    "hook" : "hp.put",
     "args" : {
         "endpoint" : "/",
         "connector" : "connector1"
     }
 }
 \end{minted}
-\subsubsection{\texttt{cp.post}}
+\subsubsection{\texttt{hp.post}}
 \label{sec-8-2-9}
 
 Performs a synchronous request, similar in semantics to an HTTP POST, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed \hyperref[ref-cp_connector]{here}).
@@ -2468,7 +2468,7 @@ Example declaration:
 
 \begin{minted}[]{javascript}
 {
-    "hook" : "cp.post",
+    "hook" : "hp.post",
     "args" : {
         "endpoint" : "/",
         "connector" : "connector1"
