@@ -3,6 +3,7 @@
 -behaviour(gen_server).
 
 -export([start_link/0, init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
+-export([connected_nodes/0]).
 
 -include("hive_monitor.hrl").
 
@@ -34,6 +35,10 @@ init([]) ->
     {ok, undefined}.
 
 %% External API:
+
+%% And some utility functions:
+connected_nodes() ->
+    [node() | nodes()].
 
 %% Gen Server handlers:
 handle_call(Msg, _From, State) ->

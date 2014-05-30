@@ -33,8 +33,8 @@ handle(Request, {dispatch, Prefix}) ->
         {<<"GET">>, Req} ->
             case hive_monitor:get(Prefix) of
                 {[]}   -> ErrorMsg = format("Requested metric \"~s\" does not exist.", [Prefix]),
-                           Req2 = reply_no_log(404, make_json(bad_monitor_request, ErrorMsg), Req),
-                           {ok, Req2, error};
+                          Req2 = reply_no_log(404, make_json(bad_monitor_request, ErrorMsg), Req),
+                          {ok, Req2, error};
 
                 Metrics -> Msg = jsonx:encode(Metrics),
                            Req2 = reply_no_log(Msg, Req),
@@ -67,6 +67,9 @@ info(Info, Request, State) ->
 %% Internal functions:
 update_gouges() ->
     %% NOTE Updates all the non-incremental counters arround the system on demand.
+    Nodes = hive_cluster:connected_nodes(),
+    hive_monitor:set(?HIVE_CLUSTER_SIZE, length(Nodes)),
+    hive_monitor:log(?HIVE_CLUSTER_NODES, Nodes),
     hive_monitor:set(?ROUTER_UPTIME, hive_router:uptime()),
     hive_monitor:set(?ROUTER_QUEUE, hive_router:msg_queue()),
     hive_monitor:set(?HIVE_UPTIME, hive:uptime()),
