@@ -203,6 +203,7 @@ handle_call({terminate, Time,  Reason}, _From, State) ->
 handle_call(Action, _From, State) ->
     inc(?ROUTER_ERRORS),
     ErrorMsg = hive_error_utils:format("Unhandled Hive Router call: ~p", [Action]),
+    lager:error(ErrorMsg),
     {reply, {error, {router_error, ErrorMsg}}, State}.
 
 handle_cast({start_client_sup, PoolSup}, State) ->

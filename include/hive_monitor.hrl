@@ -11,6 +11,9 @@
 -define(HIVE_PLUGIN_ERRORS,      <<"hive.plugin_errors">>).
 -define(CONFIG_ERRORS,           <<"hive.config_errors">>).
 
+%% Hive cluster management related counters:
+-define(HIVE_CLUSTER_ERRORS,     <<"hive.cluster.errors">>).
+
 %% Hive memory usage related:
 -define(TOTAL_MEMORY,            <<"hive.memory.total">>).
 -define(PROCESSES_MEMORY,        <<"hive.memory.processes">>).
@@ -178,4 +181,4 @@
                    ?CONNECTORS_RETURN, ?PUBSUB_REQUESTS, ?PUBSUB_ERRORS, ?PUBSUB_CHANNELS, ?PUBSUB_STATUS, ?PUBSUB_SUBSCRIBE,
                    ?PUBSUB_UNSUBSCRIBE, ?PUBSUB_JOIN, ?PUBSUB_LEAVE, ?PUBSUB_PUBLISH, ?PUBSUB_PUBLISHED, ?API_REQUESTS, ?API_ERRORS,
                    ?API_PUBSUB_ERRORS, ?API_CLIENTS_REQUESTS, ?API_HIVE_REQUESTS, ?API_HIVE_ERRORS, ?API_ROUTER_REQUESTS,
-                   ?API_ROUTER_ERRORS]).
+                   ?API_ROUTER_ERRORS, ?HIVE_CLUSTER_ERRORS]).

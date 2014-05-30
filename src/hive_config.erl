@@ -3,7 +3,7 @@
 -behaviour(gen_server).
 
 -export([start_link/0, init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
--export([set/2, get/1, get/2, add_schema/2, load_schema/1, load_schemas/1, connector/1, validate/2]).
+-export([set/3, set/2, get/1, get/2, add_schema/2, load_schema/1, load_schemas/1, connector/1, validate/2]).
 
 -include("hive_monitor.hrl").
 -import(hive_monitor_utils, [inc/1]).
@@ -48,7 +48,10 @@ terminate(_Reason, _State) ->
 
 %% External functions:
 set(Name, Value) ->
-    ok = application:set_env(hive, Name, Value).
+    set(hive, Name, Value).
+
+set(App, Name, Value) ->
+    ok = application:set_env(App, Name, Value).
 
 get(Name) ->
     case application:get_env(hive, Name) of

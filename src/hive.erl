@@ -4,7 +4,7 @@
 
 -export([start/2, stop/1]).
 -export([start_dev/1, start/1, stop/0]).
--export([uptime/0, memory/0, processes/0]).
+-export([uptime/0, memory/0, processes/0, cluster_nodes/0]).
 
 start_dev([Plugins, Schema, Config | _Ignored]) ->
     %% Development prelude definitions:
@@ -71,3 +71,6 @@ memory() ->
 processes() ->
     length(erlang:processes()).
 
+%% And some utility functions:
+cluster_nodes() ->
+    [node() | nodes()].
