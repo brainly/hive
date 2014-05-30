@@ -7,6 +7,44 @@
 	    "required" : true
 	},
 
+	"name" : {
+	    "type" : "string",
+	    "optional" : true,
+	    "default" : "hive"
+	},
+
+	"cluster_name" : {
+	    "type" : "string",
+	    "optional" : true,
+	    "default" : "hive_cluster"
+	},
+
+	"cluster_nodes" : {
+	    "type" : "array",
+	    "uniqueItems" : true,
+	    "items" : {
+	    	"type" : ["string"]
+	    },
+	    "optional" : true,
+	    "default" : []
+	},
+
+	"cluster_port_min" : {
+	    "type" : "integer",
+	    "minimum" : 0,
+	    "maximum" : 65535,
+	    "optional" : true,
+	    "default" : 9100
+	},
+
+	"cluster_port_max" : {
+	    "type" : "integer",
+	    "minimum" : 0,
+	    "maximum" : 65535,
+	    "optional" : true,
+	    "default" : 9101
+	},
+	
 	"port" : {
 	    "type" : "integer",
 	    "minimum" : 0,
