@@ -1,14 +1,21 @@
 {
     "hive" : {
-	"max_processes" : 15000,
-	"max_client_slots" : 1000,
+	"name" : "node2@127.0.0.1",
+    	"cluster_name" : "hive_chat_example",
 
+	"cluster_nodes" : ["node1@127.0.0.1"],
+	"cluster_port_min" : 9100,
+	"cluster_port_max" : 9105,
+		
 	"acceptors" : 100,
-        "port" : 8080,
+        "port" : 8079,
         "allowed_origins" : ["null", "ws://localhost"],
 
 	"direct_websocket" : true,
 	"websocket_ping_timeout" : 2000,
+
+	"max_processes" : 15000,
+	"max_client_slots" : 1000,
 	
 	"graceful_termination_timeout" : 12000
     },
@@ -25,29 +32,22 @@
     "clients" : "./clients.json",
     "connectors" : "./connectors.json",
 
-    "pubsub" : {
-    	"channels" : {
-    	    "rooms" : {
-		"privilege" : "public",
-		"timeout" : 1000
-	    }
-	}
-    },
+    "pubsub" : "./pubsub.json",
     
     "api" : {
     	"acceptors" : 100,
-	"port" : 1235,
+	"port" : 2235,
 	"hash" : "abcde12345"
     },
 
     "monitor" : {
         "acceptors" : 100,
-	"port" : 1234,
+	"port" : 2234,
 	"hash" : "12345abcde"
     },
 
     "log" : {
-        "dir" : "log/hive/",
+        "dir" : "log/node2/",
 	"console_level" : "debug",
 	"file_level" : "debug"
     }
