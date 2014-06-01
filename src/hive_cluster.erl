@@ -3,9 +3,10 @@
 -behaviour(gen_server).
 
 -export([start_link/0, init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
--export([connected_nodes/0]).
+-export([connected_nodes/0, call/2, call/3, cast/2]).
 
 -include("hive_monitor.hrl").
+-import(hive_monitor_utils, [inc/1]).
 
 %% Gen Server callbacks:
 start_link() ->
@@ -37,28 +38,62 @@ init([]) ->
 %% External API:
 
 %% And some utility functions:
+
+call(Module, Message) ->
+    call(Module, Message, infinity).
+
+call(Module, Message, Timeout) ->
+    inc(?CLUSTER_CALLS),
+    get_reply(gen_server:multi_call(connected_nodes(), Module, Message, Timeout)).
+
+cast(Module, Message) ->
+    inc(?CLUSTER_CASTS),
+    gen_server:abcast(Module, Message),
+    ok.
+
 connected_nodes() ->
     [node() | nodes()].
 
 %% Gen Server handlers:
 handle_call(Msg, _From, State) ->
-    hive_monitor:inc(?HIVE_CLUSTER_ERRORS),
+    hive_monitor:inc(?CLUSTER_ERRORS),
     lager:warning("Unhandled Hive Cluster Manager call: ~p", [Msg]),
     {reply, ok, State}.
 
 handle_cast(Msg, State) ->
-    hive_monitor:inc(?HIVE_CLUSTER_ERRORS),
+    hive_monitor:inc(?CLUSTER_ERRORS),
     lager:warning("Unhandled Hive Cluster Manager cast: ~p", [Msg]),
     {noreply, State}.
 
 handle_info(Info, State) ->
-    hive_monitor:inc(?HIVE_CLUSTER_ERRORS),
+    hive_monitor:inc(?CLUSTER_ERRORS),
     lager:warning("Unhandled Hive Cluster Manager info: ~p.", [Info]),
     {noreply, State}.
 
 code_change(_OldVsn, State, _Extra) ->
-    hive_monitor:inc(?HIVE_CLUSTER_ERRORS),
+    hive_monitor:inc(?CLUSTER_ERRORS),
     lager:warning("Unhandled Hive Cluster Manager code change."),
     {ok, State}.
 
 %% Internal functions:
+get_reply({[], _BadNodes}) ->
+    hive_monitor:inc(?CLUSTER_ERRORS),
+    ErrorMsg = hive_error_utils:format("Hive Cluster has halted and burns!"),
+    lager:error(ErrorMsg),
+    {error, {hive_cluster_error, ErrorMsg}};
+
+get_reply({Replies, _BadNodes}) ->
+    select_reply(lists:map(fun({_Node, Reply}) -> Reply end, Replies)).
+
+select_reply([Reply]) ->
+    %% NOTE If no replies were a sucess so far we have to return whatever is left.
+    Reply;
+
+select_reply([{error, _Reply} | Rest]) ->
+    select_reply(Rest);
+
+select_reply([ok | _Rest]) ->
+    ok;
+
+select_reply([{ok, Reply}| _Rest]) ->
+    {ok, Reply}.

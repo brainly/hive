@@ -60,7 +60,7 @@ publish(Cid, Events) ->
 publish(Privilege, Cid, Events) ->
     inc(?PUBSUB_REQUESTS),
     inc(?PUBSUB_PUBLISH),
-    gen_server:call(?MODULE, {publish, Privilege, Cid, Events}).
+    hive_cluster:call(?MODULE, {publish, Privilege, Cid, Events}).
 
 join(Cids) ->
     join(?MAX_PRIVILEGE, Cids).

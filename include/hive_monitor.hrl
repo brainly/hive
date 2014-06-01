@@ -12,9 +12,11 @@
 -define(CONFIG_ERRORS,           <<"hive.config_errors">>).
 
 %% Hive cluster management related counters:
--define(HIVE_CLUSTER_SIZE,       <<"hive.cluster.size">>).
--define(HIVE_CLUSTER_NODES ,     <<"hive.cluster.nodes">>).
--define(HIVE_CLUSTER_ERRORS,     <<"hive.cluster.errors">>).
+-define(CLUSTER_SIZE,            <<"hive.cluster.size">>).
+-define(CLUSTER_NODES,           <<"hive.cluster.nodes">>).
+-define(CLUSTER_ERRORS,          <<"hive.cluster.errors">>).
+-define(CLUSTER_CALLS,           <<"hive.cluster.calls">>).
+-define(CLUSTER_CASTS,           <<"hive.cluster.casts">>).
 
 %% Hive memory usage related:
 -define(TOTAL_MEMORY,            <<"hive.memory.total">>).
@@ -183,4 +185,4 @@
                    ?CONNECTORS_RETURN, ?PUBSUB_REQUESTS, ?PUBSUB_ERRORS, ?PUBSUB_CHANNELS, ?PUBSUB_STATUS, ?PUBSUB_SUBSCRIBE,
                    ?PUBSUB_UNSUBSCRIBE, ?PUBSUB_JOIN, ?PUBSUB_LEAVE, ?PUBSUB_PUBLISH, ?PUBSUB_PUBLISHED, ?API_REQUESTS, ?API_ERRORS,
                    ?API_PUBSUB_ERRORS, ?API_CLIENTS_REQUESTS, ?API_HIVE_REQUESTS, ?API_HIVE_ERRORS, ?API_ROUTER_REQUESTS,
-                   ?API_ROUTER_ERRORS, ?HIVE_CLUSTER_ERRORS, ?HIVE_CLUSTER_SIZE]).
+                   ?API_ROUTER_ERRORS, ?CLUSTER_ERRORS, ?CLUSTER_SIZE, ?CLUSTER_CALLS, ?CLUSTER_CASTS]).

@@ -29,7 +29,7 @@ init(real_init) ->
     %% FIXME Derp.
     init(?COUNTERS),
     %% We also need some special metrics:
-    init(?HIVE_CLUSTER_NODES, history),
+    init(?CLUSTER_NODES, history),
     {ok, undefined};
 
 %% External API:
