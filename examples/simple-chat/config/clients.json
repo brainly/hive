@@ -1,16 +1,13 @@
 {
     "state" : {
-	"state_manager" : "sm.redis",
+	"state_manager" : "sm.local",
 	
         "initial_value" : {
 	    "nick" : null,
 	    "rooms" : []
 	},
 
-	"args" : {
-	    "connector" : "database",
-	    "expiration_timeout" : 86400000
-	}
+	"args" : null
     },
 
     "actions" : {

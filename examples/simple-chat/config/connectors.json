@@ -11,21 +11,6 @@
 		"max_connections" : 16,
 		"max_connection_timeout" : 5000
 	    }
-	},
-	
-	"database" : {
-	    "connector" : "connector.redis",
-	    "size" : 10,
-	    "overflow" : 1000,
-	    "args": {
-		"host" : "localhost",
-		"port" : 6379,
-		"database" : 0,
-		"password" : "",
-		"restart_timeout" : 60000,
-		"reconnect_timeout" : 1000,
-		"max_reconnect_timeout" : 5000
-	    }
 	}
     }
 }

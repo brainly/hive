@@ -5,21 +5,24 @@ from httplib2 import Http
 import BaseHTTPServer
 from BaseHTTPServer import *
 
-# Users will be used for a very basic authorization:
-# Whenever a user authorizes, well check whether his chosen nickname is available.
-# If it is available, well grant him permisson to use the chat under that nickname,
-# and if it isn't available, we won't grant him any permission.
-users = []
-h = Http()
-
 class BackendHTTPRequestHandler(BaseHTTPRequestHandler):
+    # The Hive API endpoint.
+    API = "http://localhost:1235/api/abcde12345"
+
+    # Users will be used for a very basic authorization:
+    # Whenever a user authorizes, well check whether his chosen nickname is available.
+    # If it is available, well grant him permisson to use the chat under that nickname,
+    # and if it isn't available, we won't grant him any permission.
+    users = []
+    http = Http()
+
     def do_POST(self):
         if self.path == "/authorize":
             # A new user is trying to connect...
             (length,) = self.headers["Content-Length"],
             state = json.loads(self.rfile.read(int(length)))
             nick = state["trigger"]["args"][0]["nick"]
-            if nick not in users:
+            if nick not in self.users:
                 # If the chosen nicknem isn't already in use, we grant the user a permission to use the chat.
                 actions = [{"action" : "reply",
                             "args" : {"name" : "authorize",
@@ -28,7 +31,7 @@ class BackendHTTPRequestHandler(BaseHTTPRequestHandler):
                            {"action" : "store",
                             "args" : {"nick" : nick}}]
                 self._reply(200, json.dumps(actions))
-                users.append(nick)
+                self.users.append(nick)
                 return
             else:
                 actions = [{"action" : "reply",
@@ -50,9 +53,9 @@ class BackendHTTPRequestHandler(BaseHTTPRequestHandler):
                             "args" : {"name" : "dude_joins",
                                       "args" : [{"channel" : channel,
                                                  "nick" : nick}]}}]
-                h.request("http://localhost:1235/api/abcde12345/pubsub/action/" + channel,
-                          "POST",
-                          json.dumps(actions))
+                self._request("/pubsub/action/" + channel,
+                              "POST",
+                              json.dumps(actions))
                 # ...and store the rooms for later.
                 current_rooms = state["state"]["rooms"]
                 current_rooms.extend(rooms)
@@ -74,9 +77,9 @@ class BackendHTTPRequestHandler(BaseHTTPRequestHandler):
                                   "args" : [{"channel" : channel,
                                              "nick" : nick,
                                              "text" : text}]}}]
-            h.request("http://localhost:1235/api/abcde12345/pubsub/action/" + channel,
-                      "POST",
-                      json.dumps(actions))
+            self._request("/pubsub/action/" + channel,
+                          "POST",
+                          json.dumps(actions))
             self._reply(200, "")
             return
 
@@ -108,14 +111,13 @@ class BackendHTTPRequestHandler(BaseHTTPRequestHandler):
             (length,) = self.headers["Content-Length"],
             state = json.loads(self.rfile.read(int(length)))
             nick = state["state"]["nick"]
-            users.remove(nick)
+            self.users.remove(nick)
             self._reply(200, "")
             return
 
         else:
             # A bad API call. Well damn.
-            self.send_response(404)
-            self.wfile.write(json.dumps({"error" : "bad_request", "description" : "Unhandled endpoint!"}))
+            self._reply(404, json.dumps({"error" : "bad_request", "description" : "Unhandled endpoint!"}))
             return
 
     def _reply(self, code, reply):
@@ -132,12 +134,17 @@ class BackendHTTPRequestHandler(BaseHTTPRequestHandler):
                         "args" : {"name" : "dude_leaves",
                                   "args" : [{"channel" : channel,
                                              "nick" : nick}]}}]
-            h.request("http://localhost:1235/api/abcde12345/pubsub/action/" + channel,
-                      "POST",
-                      json.dumps(actions))
+            self._request("/pubsub/action/" + channel,
+                          "POST",
+                          json.dumps(actions))
 
-httpd = BaseHTTPServer.HTTPServer(('127.0.0.1', 8081), BackendHTTPRequestHandler)
-sa = httpd.socket.getsockname()
+    def _request(self, endpoint, method, data):
+        self.http.request(self.API + endpoint, method, data)
+        return
 
-print "Serving HTTP on", sa[0], "port", sa[1], "..."
-httpd.serve_forever()
+if __name__ == '__main__':
+    httpd = BaseHTTPServer.HTTPServer(('127.0.0.1', 8081), BackendHTTPRequestHandler)
+    sa = httpd.socket.getsockname()
+
+    print "Serving HTTP on", sa[0], "port", sa[1], "..."
+    httpd.serve_forever()
