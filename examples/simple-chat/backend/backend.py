@@ -93,7 +93,7 @@ class BackendHTTPRequestHandler(BaseHTTPRequestHandler):
                 rooms = state["trigger"]["args"][0]["rooms"]
                 self._leave(nick, rooms)
                 current_rooms = state["state"]["rooms"]
-                current_rooms = filter(lambda x: rooms.count(x) != 0, current_rooms)
+                current_rooms = [r for r in current_rooms if rooms.count(r) == 0]
                 actions = [{"action" : "store",
                             "args" : {"rooms" : current_rooms}}]
                 self._reply(200, json.dumps(actions))
