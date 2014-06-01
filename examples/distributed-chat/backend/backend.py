@@ -6,16 +6,16 @@ import BaseHTTPServer
 from BaseHTTPServer import *
 
 class BackendHTTPRequestHandler(BaseHTTPRequestHandler):
+    # API lists known Hive node API servers. These will be used to propagate events to the users.
+    API = ["http://localhost:1235/api/abcde12345", "http://localhost:2235/api/abcde12345"]
+
+
     # Users will be used for a very basic authorization:
     # Whenever a user authorizes, well check whether his chosen nickname is available.
     # If it is available, well grant him permisson to use the chat under that nickname,
     # and if it isn't available, we won't grant him any permissions.
     users = []
-
-    h = Http()
-
-    # Nodes lists known Hive node API servers. These will be used to propagate events to the users.
-    nodes = ["http://localhost:1235/api/abcde12345", "http://localhost:2235/api/abcde12345"]
+    http = Http()
 
     def do_POST(self):
         if self.path == "/authorize":
@@ -128,17 +128,6 @@ class BackendHTTPRequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(reply)
         return
     
-    def _request(self, endpoint, method, data):
-        for node in self.nodes:
-            try:
-                self.h.request(node + endpoint,
-                          method,
-                          data)
-                return
-            except:
-                continue
-        raise Exception("Could not reach any node.")
-
     def _leave(self, nick, rooms):
         for c in rooms:
             channel = "rooms." + c
@@ -150,6 +139,17 @@ class BackendHTTPRequestHandler(BaseHTTPRequestHandler):
                           "POST",
                           json.dumps(actions))
         return
+
+    def _request(self, endpoint, method, data):
+        for node in self.API:
+            try:
+                self.http.request(node + endpoint,
+                                  method,
+                                  data)
+                return
+            except:
+                continue
+        raise Exception("Could not reach any node.")
 
 if __name__ == '__main__':
    httpd = BaseHTTPServer.HTTPServer(('127.0.0.1', 8081), BackendHTTPRequestHandler)

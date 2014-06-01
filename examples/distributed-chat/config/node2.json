@@ -1,7 +1,7 @@
 {
     "hive" : {
 	"name" : "node2@127.0.0.1",
-    	"cluster_name" : "hive_chat_example",
+    	"cluster_name" : "distributed_chat_example",
 
 	"cluster_nodes" : ["node1@127.0.0.1"],
 	"cluster_port_min" : 9100,
@@ -31,7 +31,6 @@
 
     "clients" : "./clients.json",
     "connectors" : "./connectors.json",
-
     "pubsub" : "./pubsub.json",
     
     "api" : {
