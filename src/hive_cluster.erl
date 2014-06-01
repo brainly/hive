@@ -29,7 +29,7 @@ init([]) ->
             inc(?CLUSTER_ERRORS),
             ErrorMsg = hive_error_utils:format("Cannot start Hive Cluster Manager: ~p", [Error]),
             lager:error(ErrorMsg),
-            {stop, {hive_cluster_error, ErrorMsg}};
+            {stop, {cluster_error, ErrorMsg}};
 
         N ->
             Name = list_to_atom(binary_to_list(N)),
@@ -48,7 +48,7 @@ init([]) ->
                     inc(?CLUSTER_ERRORS),
                     ErrorMsg = hive_error_utils:format("Cannot start Hive Cluster Manager: ~p", [Error]),
                     lager:error(ErrorMsg),
-                    {stop, {hive_cluster_error, ErrorMsg}}
+                    {stop, {cluster_error, ErrorMsg}}
             end
     end.
 
@@ -97,7 +97,7 @@ get_reply({[], _BadNodes}) ->
     hive_monitor:inc(?CLUSTER_ERRORS),
     ErrorMsg = hive_error_utils:format("Hive Cluster has halted and burns!"),
     lager:error(ErrorMsg),
-    {error, {hive_cluster_error, ErrorMsg}};
+    {error, {cluster_error, ErrorMsg}};
 
 get_reply({Replies, _BadNodes}) ->
     select_reply(lists:map(fun({_Node, Reply}) -> Reply end, Replies)).
