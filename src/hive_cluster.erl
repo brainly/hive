@@ -10,13 +10,10 @@
 
 %% Gen Server callbacks:
 start_link() ->
-    application:start(folsom),
     lager:notice("Starting Hive Cluster Manager..."),
     case gen_server:start_link({local, ?MODULE}, ?MODULE, [], []) of
-        {error, Error} -> hive_monitor:inc(?HIVE_ERRORS),
-                          ErrorMsg = hive_error_utils:format("Cannot start Hive Cluster Manager: ~p", [Error]),
-                          lager:error(ErrorMsg),
-                          {error, {hive_error, ErrorMsg}};
+        {error, Error} -> lager:debug("Hive Cluster Manager encountered an error: ~p.", [Error]),
+                          {error, Error};
         Ret            -> lager:notice("Hive Cluster Manager started!"),
                           Ret
     end.
@@ -27,13 +24,33 @@ terminate(_Reason, _State) ->
 init([]) ->
     hive_config:set(kernel, inet_dist_listen_min, hive_config:get(<<"hive.cluster_port_min">>, 9100)),
     hive_config:set(kernel, inet_dist_listen_max, hive_config:get(<<"hive.cluster_port_max">>, 9105)),
-    net_kernel:start([list_to_atom(binary_to_list(hive_config:get(<<"hive.name">>, <<"hive">>))), longnames]),
-    erlang:set_cookie(node(), list_to_atom(binary_to_list(hive_config:get(<<"hive.cluster_name">>, <<"hive_cluster">>)))),
-    lists:map(fun(Node) ->
-                      net_kernel:connect_node(list_to_atom(binary_to_list(Node)))
-              end,
-              hive_config:get(<<"hive.cluster_nodes">>, [])),
-    {ok, undefined}.
+    case infere_name(hive_config:get(<<"hive.name">>, <<"hive">>)) of
+        {error, Error} ->
+            inc(?CLUSTER_ERRORS),
+            ErrorMsg = hive_error_utils:format("Cannot start Hive Cluster Manager: ~p", [Error]),
+            lager:error(ErrorMsg),
+            {stop, {hive_cluster_error, ErrorMsg}};
+
+        N ->
+            Name = list_to_atom(binary_to_list(N)),
+            ClusterName = list_to_atom(binary_to_list(hive_config:get(<<"hive.cluster_name">>, <<"hive_cluster">>))),
+            case net_kernel:start([Name]) of
+                {ok, Pid} ->
+                    connect(ClusterName),
+                    {ok, Pid};
+
+                %% NOTE This doesn't conform to the docs. Nice.
+                {error, {{already_started, Pid}, _Config}} ->
+                    connect(ClusterName),
+                    {ok, Pid};
+
+                {error, Error} ->
+                    inc(?CLUSTER_ERRORS),
+                    ErrorMsg = hive_error_utils:format("Cannot start Hive Cluster Manager: ~p", [Error]),
+                    lager:error(ErrorMsg),
+                    {stop, {hive_cluster_error, ErrorMsg}}
+            end
+    end.
 
 %% External API:
 
@@ -97,3 +114,35 @@ select_reply([ok | _Rest]) ->
 
 select_reply([{ok, Reply}| _Rest]) ->
     {ok, Reply}.
+
+connect(ClusterName) ->
+    erlang:set_cookie(node(), ClusterName),
+    lists:map(fun(Node) ->
+                      net_kernel:connect_node(list_to_atom(binary_to_list(Node)))
+              end,
+              hive_config:get(<<"hive.cluster_nodes">>, [])).
+
+infere_name(Name) ->
+    infere_name(Name, false).
+
+infere_name(Name, Fail) ->
+    case {Fail, re:run(Name, <<"[^.@]+@[^.]+\\..+">>, [{capture, none}])} of
+        {_, match} ->
+            Name;
+
+        {false, nomatch} ->
+            %% NOTE This is taken straight form the depths of net_kernel, so we can act in advance,
+            %% NOTE as the default net_kernel action on wrong node name is to die horribly.
+            case {inet_db:gethostname(), inet_db:res_option(domain)} of
+                {H, D} when is_list(H), is_list(D) ->
+                    Host = list_to_binary("@" ++ H ++ D),
+                    InferedName = <<Name/binary, Host/binary>>,
+                    infere_name(InferedName, true);
+
+                _Otherwise ->
+                    {error, "Can't infere Hive node name from host set up."}
+            end;
+
+        {true, nomatch} ->
+            {error, "Can't infere Hive node name from host set up."}
+    end.
