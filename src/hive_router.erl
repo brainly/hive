@@ -270,7 +270,9 @@ get_client(Sid, Clients) ->
 spawn_client(State, Args) ->
     case State#state.ready of
         true ->
-            Sid = sha_hex(term_to_binary(erlang:now())),
+            NodeName = hive_config:get(<<"hive.name">>),
+            Time = term_to_binary(erlang:now()),
+            Sid = sha_hex(<<NodeName/binary, Time/binary>>),
             lager:info("Spawning a new Client: ~s", [Sid]),
             Supervisor = State#state.supervisor,
             Clients = State#state.clients,

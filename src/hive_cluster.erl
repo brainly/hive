@@ -34,6 +34,7 @@ init([]) ->
         N ->
             Name = list_to_atom(binary_to_list(N)),
             ClusterName = list_to_atom(binary_to_list(hive_config:get(<<"hive.cluster_name">>, <<"hive_cluster">>))),
+            hive_config:set(<<"hive.name">>, N), %% NOTE Store infered name for use later.
             case net_kernel:start([Name]) of
                 {ok, Pid} ->
                     connect(ClusterName),
