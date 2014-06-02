@@ -3,7 +3,7 @@
 	"name" : "node1@127.0.0.1",
     	"cluster_name" : "distributed_chat_example",
 
-	"cluster_nodes" : [],
+	"cluster_nodes" : ["node2@127.0.0.1"],
 	"cluster_port_min" : 9100,
 	"cluster_port_max" : 9105,
 		

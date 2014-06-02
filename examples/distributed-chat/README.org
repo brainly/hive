@@ -18,7 +18,7 @@ General Hive settings are mostly unchanged, but we'll add a few lines for the cl
       "name" : "node1@127.0.0.1",
       "cluster_name" : "distributed_chat_example",
 
-      "cluster_nodes" : [],
+      "cluster_nodes" : ["node2@127.0.0.1"],
       "cluster_port_min" : 9100,
       "cluster_port_max" : 9105,
   },
@@ -28,8 +28,8 @@ First of all, we name the nodes using a fully qualified name =node#@127.0.0.1= a
 
 Next, we'll set up the cluster parameters - its name, ports used to connect to other nodes (these can be shared between the nodes) and a list of known cluster nodes which we'll attempt to connect to.
 
-The first node, which we'll call =node1= and run as the master node (it's not really a master, though, all of the nodes are of the same importance) won't have knowledge of any other nodes.
-The other one, =node2= will list =node1= as one of the cluster nodes, and try connecting with it once run:
+The first node, which we'll call =node1=, will list =node2= as one of the cluster nodes to connect to.
+The other one, =node2= will list =node1= as one of its prefered cluster nodes:
 
 #+begin_src javascript
   "hive" : {
@@ -41,6 +41,8 @@ The other one, =node2= will list =node1= as one of the cluster nodes, and try co
       "cluster_port_max" : 9105,
   },
 #+end_src
+
+This means that once run in either order, nodes will attempt to connect to each other. There are no master or slave (/leader or follower/) nodes.
 
 We need to keep in mind that we'll run two separate nodes locally, so they cannot share any endpoint ports. We'll set them accordingly:
 
