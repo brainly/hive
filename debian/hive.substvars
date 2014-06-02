@@ -1,0 +1,3 @@
+python:Depends=python
+shlibs:Depends=libc6 (>= 2.3.4)
+misc:Depends=
