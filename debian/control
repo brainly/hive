@@ -1,0 +1,11 @@
+Source: hive
+Section: unknown
+Priority: extra
+Maintainer: Kajetan Rzepecki <kajetan.rzepecki+github@gmail.com>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.8.4
+
+Package: hive
+Architecture: all
+Depends: ${schlibs:Depends}, ${misc:Depends}, 
+Description: 

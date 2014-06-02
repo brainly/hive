@@ -33,11 +33,15 @@ test-config:
 rev:
 	@sh priv/make_revision_tex.sh docs/revision.tex
 
-deb-package: deb-changelog
+deb-package: deb-changelog deb-control
 
 deb-changelog:
 	@touch debian/changelog
 	@sh priv/make_changelog.sh > debian/changelog
+
+deb-control:
+	@touch debian/control
+	@sh priv/make_control.sh > debian/control
 
 .PHONY: clean
 clean:
