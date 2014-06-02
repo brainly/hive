@@ -1,5 +1,5 @@
 * Chat Server
-This example extends the simple chat to include Hive distribution and a Redis database for storing user data. Hive will be started as a cluster consisting of two nodes both of which will communicate with a Python backend. The Python backend requires very little changes (mostly to accomodate multiple API endpoints) and the JavaScript frontend is used as-is, the only change being random Hive URL selection.
+This example extends the simple chat to include Hive distribution and a Redis database for storing user data. Hive will be started as a cluster consisting of two nodes both of which will communicate with a Python backend. The Python backend requires very little changes (mostly to accomodate multiple API endpoints) and the JavaScript frontend is used as-is, the only change being Hive URL selection.
 
 * Hive Setup
 ** Cluster basics
@@ -118,7 +118,7 @@ These will be used in a round-robin fashion - if the first API call fails (meani
 That's it, we just need to take multiple API endpoints into account when performing API calls.
 
 * The frontend
-The JavaScript frontend is used as-is, the only change being random Hive URL selection. It's not that interresting either way.
+The JavaScript frontend is used as-is, the only change being Hive URL selection at login. It's not that interresting either way.
 
 * Let's chat!
 ** Running the chat server

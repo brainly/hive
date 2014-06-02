@@ -5,9 +5,8 @@
     var CHANNEL_PREFIX = "rooms"
     var NODES = ['http://localhost:8080/', 'http://localhost:8079/']
     
-    function initLayout(socket, nick) {
-	document.getElementById("login").innerHTML = "<p><strong>Chatting as " + nick + "...</strong></p>";
-
+    function initLayout(socket, nick, node) {
+	document.getElementById("login").innerHTML = "<p><strong>Chatting as " + nick + " on " + node + "...</strong></p>";
 	var chats = document.createElement("div");
 	chats.id = "chats";
 	document.body.appendChild(chats);
@@ -129,6 +128,17 @@
 	nickname.size = "10";
 	nickname.value = "Nickname";
 	login.appendChild(nickname);
+
+	var server = document.createElement("select");
+
+	for (i = 1; i <= NODES.length; ++i) {
+	    var option = document.createElement("option");
+	    option.value = "" + i;
+	    option.innerHTML = "Server " + i;
+	    server.appendChild(option);
+	}
+
+	login.appendChild(server);
 	
 	var start = document.createElement("input");
 	start.type = "button";
@@ -140,7 +150,11 @@
     		var nick = nickname.value;
 		console.log("Joining as " + nick + "...");
 
-		var node = NODES[Math.floor(Math.random()*NODES.length)];
+		var selection = server.options[server.selectedIndex];
+
+		var node = NODES[selection.value - 1];
+		console.log("Connecting to " + node + "...");
+
 		var socket = io.connect(node);
 		
 		socket.on("connect", function () {
@@ -179,7 +193,7 @@
 	    			receiveInfo(name, msg.nick + " left room " + name + "...");
 			    });
 
-			    initLayout(socket, nick);
+			    initLayout(socket, nick, selection.text);
 			    joinRooms(socket, nick, ["main"]);
 			}
 			else {
@@ -192,7 +206,7 @@
 		});
 
 	    } catch (error) {
-		console.log("Connection failed!");
+		console.log("Connection failed: " + error);
 		document.body.innerHTML = "<p>Failed to connect. Please reload the page! :(</p>";
 	    }
 	};
