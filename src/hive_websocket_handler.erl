@@ -84,7 +84,7 @@ websocket_info({reply, Messages}, Request, State) when is_list(Messages) ->
     {reply, Payload, Request, State};
 
 websocket_info({register, Pid}, Request, State) ->
-    lager:info("Client ~p registered, skipping Hive router for this connection.", [Pid]),
+    lager:info("Client ~p registered, skipping Hive Router for this connection.", [Pid]),
     {ok, Request, State#state{pid = Pid}, hibernate};
 
 websocket_info(Info, Request, State) ->
