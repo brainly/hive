@@ -27,7 +27,7 @@ init([]) ->
     case infere_name(hive_config:get(<<"hive.name">>, <<"hive">>)) of
         {error, Error} ->
             inc(?CLUSTER_ERRORS),
-            ErrorMsg = hive_error_utils:format("Cannot start Hive Cluster Manager: ~p", [Error]),
+            ErrorMsg = hive_error_utils:format("Cannot start Hive Cluster Manager: ~s", [Error]),
             lager:error(ErrorMsg),
             {stop, {cluster_error, ErrorMsg}};
 
@@ -96,7 +96,7 @@ code_change(_OldVsn, State, _Extra) ->
 %% Internal functions:
 get_reply({[], _BadNodes}) ->
     hive_monitor:inc(?CLUSTER_ERRORS),
-    ErrorMsg = hive_error_utils:format("Hive Cluster has halted and burns!"),
+    ErrorMsg = hive_error_utils:format("Hive Cluster has halted and caught fire!"),
     lager:error(ErrorMsg),
     {error, {cluster_error, ErrorMsg}};
 
@@ -141,9 +141,9 @@ infere_name(Name, Fail) ->
                     infere_name(InferedName, true);
 
                 _Otherwise ->
-                    {error, "Can't infere Hive node name from host set up."}
+                    {error, <<"Can't infere Hive node name from host set up.">>}
             end;
 
         {true, nomatch} ->
-            {error, "Can't infere Hive node name from host set up."}
+            {error, <<"Can't infere Hive node name from host set up.">>}
     end.
