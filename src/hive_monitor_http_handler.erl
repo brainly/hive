@@ -32,9 +32,9 @@ handle(Request, {dispatch, Prefix}) ->
     case cowboy_req:method(Request) of
         {<<"GET">>, Req} ->
             case hive_monitor:get(Prefix) of
-                {[]}   -> ErrorMsg = format("Requested metric \"~s\" does not exist.", [Prefix]),
-                          Req2 = reply_no_log(404, make_json(bad_monitor_request, ErrorMsg), Req),
-                          {ok, Req2, error};
+                {[]}   -> ErrorMsg = hive_error_utils:format("Requested metric \"~s\" does not exist.", [Prefix]),
+                           Req2 = reply_no_log(404, make_json(bad_monitor_request, ErrorMsg), Req),
+                           {ok, Req2, error};
 
                 Metrics -> Msg = jsonx:encode(Metrics),
                            Req2 = reply_no_log(Msg, Req),
@@ -48,7 +48,7 @@ handle(Request, {dispatch, Prefix}) ->
             {ok, Req2, done};
 
         {Method, Req} ->
-            ErrorMsg = format("Unsupported Hive Monitor access method: ~s.", [Method]),
+            ErrorMsg = hive_error_utils:format("Unsupported Hive Monitor access method: ~s.", [Method]),
             lager:warning(ErrorMsg),
             Req2 = reply_no_log(405, make_json(bad_monitor_request, ErrorMsg), Req),
             {ok, Req2, error}
