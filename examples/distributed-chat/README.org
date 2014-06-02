@@ -1,0 +1,134 @@
+* Chat Server
+This example extends the simple chat to include Hive distribution and a Redis database for storing user data. Hive will be started as a cluster consisting of two nodes both of which will communicate with a Python backend. The Python backend requires very little changes (mostly to accomodate multiple API endpoints) and the JavaScript frontend is used as-is, the only change being Hive URL selection.
+
+* Hive Setup
+** Cluster basics
+The biggest change is that we will run two Hive instances which will form a cluster. In order to achieve tat we'll need to create two separate configuration files, one for each node:
+
+- =examples/distributed-chat/config/node1.json=, and
+- =examples/distributed-chat/config/node2.json=
+
+Both of these will share some settings. For example, the client configuration (found in =examples/distributed-chat/config/clients.json=), the service connectors configuration (found in =examples/distributed-chat/config/connectors.json=) and the publisher-subscriber channel configuration (found in =examples/distributed-chat/config/pubsub.json=) will be shared since these are cluster-wide sittenigs.
+
+** General Hive settings
+General Hive settings are mostly unchanged, but we'll add a few lines for the cluster set up:
+
+#+begin_src javascript
+  "hive" : {
+      "name" : "node1@127.0.0.1",
+      "cluster_name" : "distributed_chat_example",
+
+      "cluster_nodes" : ["node2@127.0.0.1"],
+      "cluster_port_min" : 9100,
+      "cluster_port_max" : 9105,
+  },
+#+end_src
+
+First of all, we name the nodes using a fully qualified name =node#@127.0.0.1= as we'll be running both Hives locally. The names could very easily be changed to a domain name or an IP address of the machine you're running the nodes on. You could also try to leave the address out and make Hive infere it for you (if your machine is configured properly).
+
+Next, we'll set up the cluster parameters - its name, ports used to connect to other nodes (these can be shared between the nodes) and a list of known cluster nodes which we'll attempt to connect to.
+
+The first node, which we'll call =node1=, will list =node2= as one of the cluster nodes to connect to.
+The other one, =node2= will list =node1= as one of its prefered cluster nodes:
+
+#+begin_src javascript
+  "hive" : {
+      "name" : "node2@127.0.0.1",
+      "cluster_name" : "distributed_chat_example",
+
+      "cluster_nodes" : ["node1@127.0.0.1"],
+      "cluster_port_min" : 9100,
+      "cluster_port_max" : 9105,
+  },
+#+end_src
+
+This means that once run in either order, nodes will attempt to connect to each other. There are no master or slave (/leader or follower/) nodes.
+
+We need to keep in mind that we'll run two separate nodes locally, so they cannot share any endpoint ports. We'll set them accordingly:
+
+- =hive.port= - =8080= for node1 and =8079= for node2,
+- =api.port= - =1235= for node1 and =2235= for node2,
+- =monitor.port= - =1234= for node1 and =2234= for node2.
+
+** Setting up the Redis database
+Next, we'll set up a Redis database connection using a Hive Service Connector pool. The following configuration goes to the =connectors.pools= section of the configuration file:
+
+#+begin_src javascript
+  "database" : {
+      "connector" : "connector.redis",
+      "size" : 10,
+      "overflow" : 1000,
+      "args": {
+          "host" : "localhost",
+          "port" : 6379,
+          "database" : 0,
+          "password" : "",
+          "restart_timeout" : 60000,
+          "reconnect_timeout" : 1000,
+          "max_reconnect_timeout" : 5000
+      }
+  }
+#+end_src
+
+We setup the database host, port and various other Service Connector related settings. We want our database to run on =localhost= on port =6379= and we want to make sure that the database is well and kicking at all times, so we configure a restart timeout for this connector (set at 1 minute) which will cause the connector to periodically restart the connection. Now, let's make sure our users actually use the database:
+
+#+begin_src javascript
+  "state" : {
+      "state_manager" : "sm.redis",
+
+      "initial_value" : {
+          "nick" : null,
+          "rooms" : []
+      },
+
+      "args" : {
+          "connector" : "database",
+          "expiration_timeout" : 86400000
+      }
+  }
+#+end_src
+
+We do so by configuring the =clients.state= part. We want to use a Redis State Manager that uses our =database= connector to store user data. We also initialize the state with a =nick= defaulting to =null= and a list of =rooms= the user is currently on defaulting to an empty array. We'll use these in our Python backend.
+** Setting up the backend
+The backend connector stays the same and is shared between all the cluster nodes, but we could as easily run two separate backends - one for each of them. Hive is fairly flexible in this regard.
+
+* The backend
+The backend requires very little changes, let's start of with multiple API backends.
+
+#+begin_src python
+  class BackendHTTPRequestHandler(BaseHTTPRequestHandler):
+      API = ["http://localhost:1235/api/abcde12345", "http://localhost:2235/api/abcde12345"]
+      # ...
+#+end_src
+
+These will be used in a round-robin fashion - if the first API call fails (meaning that one of the Hive nodes is down) the backend will use the second one.
+
+** Helper functions
+#+begin_src python
+    def _request(self, endpoint, method, data):
+        for node in self.API:
+            try:
+                self.http.request(node + endpoint,
+                                  method,
+                                  data)
+                return
+            except:
+                continue
+        raise Exception("Could not reach any node.")
+#+end_src
+
+That's it, we just need to take multiple API endpoints into account when performing API calls.
+
+* The frontend
+The JavaScript frontend is used as-is, the only change being Hive URL selection at login. It's not that interresting either way.
+
+* Let's chat!
+** Running the chat server
+Running the chat server is very straightforward:
+
+- run an instance of Redis on =localhost= under port =6379=,
+- run the backend Python script by invoking =python examples/distributed-chat/backend/backend.py=,
+- run the first Hive node by invoking =make run CONFIG=examples/distributed-chat/config/node1.json=,
+- run the second Hive node by invoking =make run CONFIG=examples/distributed-chat/config/node2.json=,
+
+Hives will form a cluster and users connecting to either of the nodes will receive events comming from both of them.
