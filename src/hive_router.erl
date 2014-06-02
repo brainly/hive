@@ -80,7 +80,7 @@ route_event(Sid, Event) ->
 
 route_events(Sid, Events) ->
     inc(?ROUTER_REQUESTS),
-    gen_server:call(?MODULE, {route_events, Sid, Events}).
+    hive_cluster:call(?MODULE, {route_events, Sid, Events}).
 
 set_sink(Sid, Sink) ->
     inc(?ROUTER_REQUESTS),
@@ -203,6 +203,7 @@ handle_call({terminate, Time,  Reason}, _From, State) ->
 handle_call(Action, _From, State) ->
     inc(?ROUTER_ERRORS),
     ErrorMsg = hive_error_utils:format("Unhandled Hive Router call: ~p", [Action]),
+    lager:error(ErrorMsg),
     {reply, {error, {router_error, ErrorMsg}}, State}.
 
 handle_cast({start_client_sup, PoolSup}, State) ->
@@ -269,7 +270,9 @@ get_client(Sid, Clients) ->
 spawn_client(State, Args) ->
     case State#state.ready of
         true ->
-            Sid = sha_hex(term_to_binary(erlang:now())),
+            NodeName = hive_config:get(<<"hive.name">>),
+            Time = term_to_binary(erlang:now()),
+            Sid = sha_hex(<<NodeName/binary, Time/binary>>),
             lager:info("Spawning a new Client: ~s", [Sid]),
             Supervisor = State#state.supervisor,
             Clients = State#state.clients,

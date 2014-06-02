@@ -7,3 +7,4 @@
 /.eunit
 *.bbl
 *.blg
+lager.config

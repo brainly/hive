@@ -1,15 +1,17 @@
 {
     "hive" : {
-	"max_processes" : 15000,
-
-	"max_client_slots" : 1000,
-
-	"acceptors" : 100,
+    	"name" : "sample_hive@127.0.0.1",
+	"cluster_name" : "sample_hive_cluster",
+	
         "port" : 8080,
+	"acceptors" : 100,
         "allowed_origins" : ["http://127.0.1.1", "ws://192.168.0.102", "null", "ws://localhost"],
 
 	"direct_websocket" : true,
 	"websocket_ping_timeout" : 2000,
+	
+	"max_processes" : 15000,
+	"max_client_slots" : 1000,
 	
 	"graceful_termination_timeout" : 12000
     },
