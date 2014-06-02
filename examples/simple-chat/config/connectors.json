@@ -1,0 +1,16 @@
+{
+    "rent_timeout" : 5000,
+
+    "pools" : {
+	"backend" : {
+	    "connector" : "connector.http",
+	    "size" : 10,
+	    "overflow" : 1000,
+	    "args" : {
+	    	"base_url" : "http://localhost:8081",
+		"max_connections" : 16,
+		"max_connection_timeout" : 5000
+	    }
+	}
+    }
+}

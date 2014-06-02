@@ -1,0 +1,413 @@
+* Chat Server
+This example shows how to build a simple chat server using Hive.
+
+Hive will communicate various events to the Python backend. The frontend will be a simple JavaScript application that manages chatboxes and communication using Socket.IO. All of this under 250 lines of code.
+
+* Hive Setup
+** General Hive settings
+We'll start with a short discussion of the general server setup:
+
+#+begin_src javascript
+  "hive" : {
+      "name" : "simple_chat@127.0.0.1",
+
+      "acceptors" : 100,
+      "port" : 8080,
+      "allowed_origins" : ["null", "ws://localhost"],
+
+      "direct_websocket" : true,
+      "websocket_ping_timeout" : 2000,
+
+      "max_processes" : 15000,
+      "max_client_slots" : 1000,
+      "graceful_termination_timeout" : 12000
+  }
+#+end_src
+
+First, we set up the number of requests acceptors and configure a listening port - Hive will listen on port =8080=. We also set =null= and =ws://localhost= as accepted origins, as we're going to run the client locally and spawn some automated bots later (stay tuned).
+We also limit the total number of Erlang processes and available clients slots, and set up various other things described in detail in the documentation.
+
+** Setting up the backend
+While we're defining Service Connector pools, we might as well throw the backend connector in here:
+
+#+begin_src javascript
+  "backend" : {
+      "connector" : "connector.http",
+      "size" : 10,
+      "overflow" : 1000,
+      "args" : {
+          "base_url" : "http://localhost:8081",
+          "max_connections" : 16,
+          "max_connection_timeout" : 5000
+      }
+  }
+#+end_src
+
+We're using a RESTful HTTP connector here, but we just as easily could have used a TCP connector together with a TCP-based backend. We set up the base URL of the backend together with several timeouts; we expect the backend to serve its API on =localhost= port =8081=. Hive will refuse to start unless there's an HTTP server running on local machine under that port. Keep that in mind later, when we test this chat server!
+
+** Setting up event handlers
+And now, the meat of the chat server, the event handlers. Starting with backend event handlers:
+
+#+begin_src javascript
+  "actions" : {
+      "reply" : [
+          {
+              "action" : "action.send_event",
+              "args" : null
+          }
+      ],
+
+      "store" : [
+          {
+              "action" : "action.update_state",
+              "args" : null
+          }
+      ]
+  }
+#+end_src
+
+These will cause Hive to send a Socket.IO event reply whenever a =reply= backend event is received and update its internal state whenever a =store= backend event is received. Now, all we have need to do is make Hive actually talk to the backend. We do this by setting up the hooks that will run on certain client events:
+
+#+begin_src javascript
+  "hooks" : {
+      "on_disconnect" : [
+          {
+              "hook" : "hp.put",
+              "args" : {
+                  "connector" : "backend",
+                  "endpoint" : "/leave"
+              }
+          },
+          {
+              "hook" : "hp.put",
+              "args" : {
+                  "connector" : "backend",
+                  "endpoint" : "/cleanup"
+              }
+          }
+      ],
+
+      "authorize" : [
+          {
+              "hook" : "hp.post",
+              "args" : {
+                  "connector" : "backend",
+                  "endpoint" : "/authorize"
+              }
+          }
+      ],
+
+      "join_rooms" : [
+          {
+              "hook" : "pubsub.subscribe",
+              "args" : "public"
+          },
+          {
+              "hook" : "hp.post",
+              "args" : {
+                  "connector" : "backend",
+                  "endpoint" : "/join"
+              }
+          }
+      ],
+
+      "publish_msg" : [
+          {
+              "hook" : "hp.put",
+              "args" : {
+                  "connector" : "backend",
+                  "endpoint" : "/publish"
+              }
+          }
+      ],
+
+      "leave_rooms" : [
+          {
+              "hook" : "pubsub.unsubscribe",
+              "args" : "public"
+          },
+          {
+              "hook" : "hp.post",
+              "args" : {
+                  "connector" : "backend",
+                  "endpoint" : "/leave"
+              }
+          }
+      ]
+  }
+#+end_src
+
+Woah, that was a mouthful.
+
+We start with making sure that the user cleans up after himself. We want him to leave all the chat rooms and do a cleanup when he disconnects from the server. We do this by using the Hive Protocol Hook - each time a user disconnects it'll asynchronously post (=hp.put=) some user data to =/leave= and =/cleanup= backend endpoints.
+
+Next, we set up an authorization hook, so we have a little control over who connects to our chat servers. Notice that this time we used a synchronous post (=hp.post=) meaning we expect to receive a backend event as a reply. In this case, the event will instruct us whether the authorization succeeded or not.
+
+Lastly, we set up the room management hooks: joining a room, publishing a message and leaving a room. We notify the backend on each of these events so it can act accordingly and, for example, propagate presence updates to the chat rooms using Hive's API.
+
+To make chatting possible, however, we have to use the Hive Pub-Sub channels. This means we need to set up a Pub-Sub channel prefix which we'll later use to create new channels and publish events to:
+
+#+begin_src javascript
+  "channels" : {
+      "rooms" : {
+          "privilege" : "public",
+          "timeout" : 1000
+      }
+  }
+#+end_src
+
+This goes to the =pubsub= section of the configuration file. All we really want is a root =rooms= that is publicly accessible. We also make the channels timeout after a second when there are no users subscribed to them.
+
+** Setting up Hive API
+The backend will use Hive's Pub-Sub API to publish messages to the chat rooms, so we need to set it up:
+
+#+begin_src javascript
+  "api" : {
+      "acceptors" : 100,
+      "port" : 1235,
+      "hash" : "abcde12345"
+  }
+#+end_src
+
+The API server will run on port =1235= on =localhost=. We also set up a hash key, so no unauthorized accesses are possible.
+
+Now, we're all set an ready to run our chat server, except...
+
+* The backend
+...we still need a simple backend. It'll be writteng in Python but any other HTTP server could do, for example, Apaché Server running PHP might be your choice.
+
+The general structure of the backend script:
+
+#+begin_src python
+  import json
+  from httplib2 import Http
+  import BaseHTTPServer
+  from BaseHTTPServer import *
+
+  class BackendHTTPRequestHandler(BaseHTTPRequestHandler):
+      API = "http://localhost:1235/api/abcde12345"
+      users = []
+      http = Http()
+
+      def do_POST(self):
+          # Dispatchers go here.
+          return
+
+  if __name__ == '__main__':
+      httpd = BaseHTTPServer.HTTPServer(('127.0.0.1', 8081), BackendHTTPRequestHandler)
+      sa = httpd.socket.getsockname()
+
+      print "Serving HTTP on", sa[0], "port", sa[1], "..."
+      httpd.serve_forever()
+#+end_src
+
+Yes, it's very basic. We're using =BaseHTTPServer= coupled with =httplib2= for HTTP-based communication and =json= for, well, JSON handling. The server will run on =localhost= under port =8081=, exactly where Hive expects it to run.
+
+** User authorization
+We'll start with the user authorization. It'll be very simple, actually, all we'll ever going to check is whether a nickname chosen by a user is available, or not. We'll add this to the =do_POST= method of our server:
+
+#+begin_src python
+  if self.path == "/authorize":
+      # A new user is trying to connect...
+      (length,) = self.headers["Content-Length"],
+      state = json.loads(self.rfile.read(int(length)))
+      nick = state["trigger"]["args"][0]["nick"]
+      if nick not in self.users:
+          # If the chosen nicknem isn't already in use, we grant the user a permission to use the chat.
+          actions = [{"action" : "reply",
+                      "args" : {"name" : "authorize",
+                                "args" : [{"permission" : "granted"}]}},
+                     # We also store the nickname in his state for later use.
+                     {"action" : "store",
+                      "args" : {"nick" : nick}}]
+          self._reply(200, json.dumps(actions))
+          self.users.append(nick)
+          return
+      else:
+          actions = [{"action" : "reply",
+                      "args" : {"name" : "authorize",
+                                "args" : [{"permission" : None}]}}]
+          self._reply(200, json.dumps(actions))
+          return
+#+end_src
+
+If the chosen nickname is available, we return two backend event. First of them will send a good news to the browser and the second one will store the nick name in the Redis database for later.
+
+** Joining chat rooms
+Now, Hive handles chat rooms and chat subscription, so all we really need to do here is inform other users of a channel, that somebody has joined it:
+
+#+begin_src python
+  if self.path == "/join":
+      # User joins some chat rooms...
+      (length,) = self.headers["Content-Length"],
+      state = json.loads(self.rfile.read(int(length)))
+      nick = state["state"]["nick"]
+      rooms = state["trigger"]["args"][0]["rooms"]
+      for c in rooms:
+          channel = "rooms." + c
+          # We inform other users present it those rooms about the join...
+          actions = [{"action" : "reply",
+                      "args" : {"name" : "dude_joins",
+                                "args" : [{"channel" : channel,
+                                           "nick" : nick}]}}]
+          self._request("/pubsub/action/" + channel,
+                        "POST",
+                        json.dumps(actions))
+          # ...and store the rooms for later.
+          current_rooms = state["state"]["rooms"]
+          current_rooms.extend(rooms)
+          actions = [{"action" : "store",
+                      "args" : {"rooms" : current_rooms}}]
+          self._reply(200, json.dumps(actions))
+          return
+#+end_src
+
+We use the nickname stored in the users state (which is, conveniently enough, sent to us) and extract the list of rooms a user wants to join which we'll add to his state. We don't need to actually subscribe him to any Pub-Sub channels, because Hive has already taken care of that.
+
+We inform other users present on all of those rooms by publishing an apropriate event on their respective Pub-Sub channels via the Hive API.
+
+** Publishing messages
+Similarily, publishing messages is implemented as a simple Hive API call, but it's easy to imagine how we could preprocess messages before publishing them (oh the joys of censorship these days):
+
+#+begin_src python
+  if self.path == "/publish":
+      # User published a message to a channel...
+      (length,) = self.headers["Content-Length"],
+      state = json.loads(self.rfile.read(int(length)))
+      # We'll just propagate it through to the other users present on that channel.
+      nick = state["state"]["nick"]
+      channel = state["trigger"]["args"][0]["channel"]
+      text = state["trigger"]["args"][0]["text"]
+      actions = [{"action" : "reply",
+                  "args" : {"name" : "msg_published",
+                            "args" : [{"channel" : channel,
+                                       "nick" : nick,
+                                       "text" : text}]}}]
+      self._request("/pubsub/action/" + channel,
+                    "POST",
+                    json.dumps(actions))
+      self._reply(200, "")
+      return
+#+end_src
+
+** Leaving chat rooms
+Handling users leaving chat rooms is a little bit tricky. We use this endpoint in two distinct places:
+- when a user requests to leave a chat room,
+- when a user disconnects from the server.
+
+#+begin_src python
+  if self.path == "/leave":
+      # User left some channels...
+      (length,) = self.headers["Content-Length"],
+      state = json.loads(self.rfile.read(int(length)))
+      nick = state["state"]["nick"]
+      if state["trigger"] != None:
+          # User explicitly requestsed to leave a room.
+          rooms = state["trigger"]["args"][0]["rooms"]
+          self._leave(nick, rooms)
+          current_rooms = state["state"]["rooms"]
+          current_rooms = [r for r in current_rooms if rooms.count(r) == 0]
+          actions = [{"action" : "store",
+                      "args" : {"rooms" : current_rooms}}]
+          self._reply(200, json.dumps(actions))
+          return
+      else:
+          # User closed the chat and we need to remove him from all the rooms
+          # he is currently subscribed to.
+          rooms = state["state"]["rooms"]
+          self._leave(nick, rooms)
+          self._reply(200, "")
+          return
+#+end_src
+
+In the former case we only need to propagate an apropriate event to the chat room and update the user state. In the latter case, however, we have to notify all of the chat rooms he is currently subscribed to.
+
+** The cleanup
+All we're left with is to implement the cleanup and since our authorization scheme is so simple, so is the cleanup:
+
+#+begin_src python
+  if self.path == "/cleanup":
+      # This is just a convenience API to make the nickname available again.
+      (length,) = self.headers["Content-Length"],
+      state = json.loads(self.rfile.read(int(length)))
+      nick = state["state"]["nick"]
+      self.users.remove(nick)
+      self._reply(200, "")
+      return
+#+end_src
+
+We just make the nickname available for use again.
+
+** Helper functions
+Throughout the backend code we've used several helper functions such sa =_leave= or =_reply=. Here's their code:
+
+#+begin_src python
+    def _reply(self, code, reply):
+        self.send_response(code)
+        self.send_header("Content-Type", "text/plain")
+        self.end_headers()
+        self.wfile.write(reply)
+        return
+
+    def _leave(self, nick, rooms):
+        for c in rooms:
+            channel = "rooms." + c
+            actions = [{"action" : "reply",
+                        "args" : {"name" : "dude_leaves",
+                                  "args" : [{"channel" : channel,
+                                             "nick" : nick}]}}]
+            self._request("/pubsub/action/" + channel,
+                          "POST",
+                          json.dumps(actions))
+
+    def _request(self, endpoint, method, data):
+        self.http.request(self.API + endpoint, method, data)
+        return
+#+end_src
+* The frontend
+The JavaScript frontend isn't really that much interesting, it's just a bunch of chatbox building and button =onclick='ing. If you insisnt on checking it out, please go consult the source.
+
+* Let's chat!
+** Running the chat server
+Finally, we are ready to start chatting! Open =examples/simple-chat/frontend/client.html= in your Web browser and you'll be greeted with a tiny input box for your nickname and a button saying =Start chatting!=, but don't click it just ye-. Goddamnit. You clicked it, didn't you?
+
+We need to run the server first, silly! This is what needs to be done:
+- run the backend Python script by invoking =python examples/simple-chat/backend/backend.py=,
+- run Hive by invoking =make run CONFIG=examples/simple-chat/config/config.json=,
+
+NOW click the button to join the chat server. If everything went well you'll be greeted by a chatbox containing:
+
+#+begin_example
+  *** Welcome to the main room!
+  *** Nickname joined room main...
+#+end_example
+
+** Joining/leaving & creating chats
+Now you're free to chat, create new chat rooms and leave existing ones. Have fun!
+
+** BOTS, BOTS EVERYWHERE!
+Just for giggles, the =examples/chat/tests= directory contains a test scenario for a tool we wrote, called [[https://github.com/brainly/flood][Flood]]. Once you run it you'll see 10 bots appearing in your chat room. Hijinks ensue!
+
+#+begin_example
+  *** bot_2 joined room main...
+  *** bot_1 joined room main...
+  *** bot_7 joined room main...
+  *** bot_6 joined room main...
+  *** bot_3 joined room main...
+  *** bot_8 joined room main...
+  *** bot_0 joined room main...
+  *** bot_5 joined room main...
+  *** bot_4 joined room main...
+  *** bot_9 joined room main...
+  <Nickname> ping
+  <bot_4> pong
+  <bot_3> pong
+  <bot_6> pong
+  <bot_2> pong
+  <bot_9> pong
+  <bot_0> pong
+  <bot_1> pong
+  <bot_5> pong
+  <bot_8> pong
+  <bot_7> pong
+#+end_example
