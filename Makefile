@@ -34,6 +34,7 @@ rev:
 	@sh priv/make_revision_tex.sh docs/revision.tex
 
 deb-package: deb-changelog deb-control
+	@debuild binary
 
 deb-changelog:
 	@touch debian/changelog

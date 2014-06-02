@@ -1,3 +1,9 @@
+hive (v0.5.0) unstable; urgency=low
+
+  * This release adds clusterization capabilities to Hive.
+
+ -- Kajetan Rzepecki <kajetan.rzepecki+github@gmail.com>  Mon Jun 2 11:55:16 2014 +0200
+
 hive (v0.2.0) unstable; urgency=low
 
   * This release adds client slots limiting (in addition to Erlang process limiting) to Hive.

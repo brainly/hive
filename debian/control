@@ -7,5 +7,5 @@ Standards-Version: 3.8.4
 
 Package: hive
 Architecture: all
-Depends: ${schlibs:Depends}, ${misc:Depends}, 
-Description: 
+Depends: ${schlibs:Depends}, ${misc:Depends}
+Description: Hive v0.5.0
