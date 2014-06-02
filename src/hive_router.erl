@@ -72,7 +72,7 @@ route_message(Sid, Message) ->
 
 route_messages(Sid, Messages) ->
     inc(?ROUTER_REQUESTS),
-    hive_cluster:call(?MODULE, {route_messages, Sid, Messages}).
+    gen_server:call(?MODULE, {route_messages, Sid, Messages}).
 
 route_event(Sid, Event) ->
     inc(?ROUTER_REQUESTS),
