@@ -37,6 +37,7 @@ init([]) ->
     Strategy = {one_for_one, 5, 10},
     Processes = [?MODULE_SPECS(hive_monitor),
                  ?MODULE_SPECS(hive_plugins),
-                 ?MODULE_SPECS(hive_config)],
+                 ?MODULE_SPECS(hive_config),
+                 ?MODULE_SPECS(hive_cluster)],
     {ok, {Strategy, Processes}}.
 

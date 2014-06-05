@@ -175,7 +175,9 @@ After a quick boot-up you will be greeted by a log similar to this one (note tha
 18:21:02.852 [notice] Hive Plugins Manager started!
 18:21:02.860 [notice] Starting Hive Config Manager...
 18:21:02.886 [notice] Hive Config Manager started!
-18:21:02.886 [notice] Hive Environment Supervisor started!
+18:21:02.887 [notice] Starting Hive Cluster Manager...
+18:21:02.887 [notice] Hive Cluster Manager started!
+18:21:02.889 [notice] Hive Environment Supervisor started!
 18:21:02.894 [notice] Starting Hive Module Supervisor...
 18:21:02.918 [notice] Starting Hive Connectors Supervisor...
 18:21:02.925 [notice] Starting Hive Connectors Manager...
@@ -218,7 +220,8 @@ hive_root_sup                        - Top-level Hive supervisor.
 |-- hive_env_sup                     - Hive environment supervisor.
 |   |-- hive_config                  - Hive Config Manager.
 |   |-- hive_monitor                 - Hive Monitor Manager.
-|   '-- hive_plugins                 - Hive Plugins supervisor.
+|   |-- hive_plugins                 - Hive Plugins Manager.
+|   '-- hive_cluster                 - Hive Cluster Manager.
 '-- hive_sup                         - Hive Modules supervisor.
     |-- hive_connectors_sup          - Hive Connectors supervisor.
     |   |-- hive_connectors          - Hive Connectors Manager.
@@ -261,7 +264,7 @@ $ tree hive
   |-- ebin                   - Compiled Hive source files.
   |   '-- ...
   |-- etc                    - Hive configuration files.
-  |   |-- hive.json         - The default configuration file.
+  |   |-- hive.json          - The default configuration file.
   |   |-- schema             - Hive config validation files.
   |   '-- ...
   |-- include                - Hive Erlang include files.
@@ -277,30 +280,30 @@ $ tree hive
   |-- priv                   - Directory containing additional stuff.
   |   |-- start-dev.sh       - Hive running script (dev version).
   |   |-- start.sh           - Hive running script.
-  |   |-- prep_hive.erl     - A script that prepares Hives execution environment.
+  |   |-- prep_hive.erl      - A script that prepares Hives execution environment.
   |   |-- test_config.erl    - Hive configuration testing script.
-  |   |-- tsung_hive.xml    - A config file for Tsung.
+  |   |-- tsung_hive.xml     - A config file for Tsung.
   |   '-- ...
   |-- rebar                  - Rebar build tool.
   |-- rebar.config           - Rebar config (lists dependencies).
   |-- src                    - Hive Erlang source files.
-  |   |-- hive_client*      - Hive generic client code.
-  |   |-- hive_websocket*   - Hive WebSocket client related code.
-  |   |-- hive_xhr_polling* - Hive XHR-polling client related code.
-  |   |---hive_socketio*    - Hive Socket.IO related code.
-  |   |-- hive_connectors*  - Hive Connectors manager.
-  |   |-- hive_*_connector* - Various connectors.
-  |   |-- hive_*_client*    - Hive Client handler related code.
-  |   |-- hive_hooks*       - Hive Hooks related code.
-  |   |-- hive_events*      - Hive Internal Events related code.
-  |   |-- hive_monitor*     - Hive Monitor related code.
-  |   |-- hive_pubsub*      - Hive Pub-Sub related code.
-  |   |-- hive_router*      - Hive Router related code.
-  |   |-- hive_config*      - Hive Config related code.
-  |   |-- hive_api*         - Hive RESTful API related code.
-  |   |-- hive_*_sup*       - Various Hive supervisors.
+  |   |-- hive_client*       - Hive generic client code.
+  |   |-- hive_websocket*    - Hive WebSocket client related code.
+  |   |-- hive_xhr_polling*  - Hive XHR-polling client related code.
+  |   |---hive_socketio*     - Hive Socket.IO related code.
+  |   |-- hive_connectors*   - Hive Connectors manager.
+  |   |-- hive_*_connector*  - Various connectors.
+  |   |-- hive_*_client*     - Hive Client handler related code.
+  |   |-- hive_hooks*        - Hive Hooks related code.
+  |   |-- hive_events*       - Hive Internal Events related code.
+  |   |-- hive_monitor*      - Hive Monitor related code.
+  |   |-- hive_pubsub*       - Hive Pub-Sub related code.
+  |   |-- hive_router*       - Hive Router related code.
+  |   |-- hive_config*       - Hive Config related code.
+  |   |-- hive_api*          - Hive RESTful API related code.
+  |   |-- hive_*_sup*        - Various Hive supervisors.
   |   '-- ...
-  '-- test                   - Hive unit-tests.
+  '-- test                    - Hive unit-tests.
       '-- ...
 #+end_example
 
@@ -385,8 +388,21 @@ null, "null", "*.*", "http://zadane.pl"
 # <<<ref-graceful_config>>>
 - =hive.graceful_termination_timeout= - the time (*in milliseconds*) after which Client Workers will be forced to terminate on server termination.
 
+- =hive.max_client_slots= - the maximal number of clients that can be connected to Hive. It has to be *a positive integer*,
+
 #+latex: \noindent
 Additional, optional parameters:
+
+# <<<ref-cluster-config>>>
+- =hive.name= - a string representing the name of this Hive instance, defaults to ="hive"=. It is described in detail in a [[ref-cluster-naming-convention][later section]],
+
+- =hive.cluster_name= - a string representing the name of the Hive cluster formed by this Hive instance.
+
+- =hive.cluster_nodes= - a JavaScript array of cluster node names to which this instance will attept to connect. Every element of this array is a =hive.name= of a Hive instance,
+
+- =hive.cluster_port_min= - an integer in range (0, 65535) representing the lower bound of the range of ports used to maintain Hive cluster connections,
+
+- =hive.cluster_port_max= - an integer in range (0, 65535) representing the upper bound of the range of ports used to maintain Hive cluster connections,
 
 - =hive.direct_websocket= - *a boolean* flag determining whether WebSocket-based clients should skip the Hive Router in order to speed up the client-server communication. Skipping the router involves a trade off in that the router won't be able to manage clients communication (so no Socket.IO event related router logs, possible message counts inconsistencies, etc).
 
@@ -399,13 +415,21 @@ Example values:
 
 #+begin_src javascript
 "hive" : {
+    "name" : "hive@zadane.pl",
+    "cluster_name" : "hive_server_cluster",
+    "cluster_port_min" : 1234,
+    "cluster_port_max" : 2345,
+
     "acceptors" : 1000,
     "port" : 8080,
     "allowed_origins" : ["http://zadane.pl"],
+
+    "max_client_slots" : 1000,
+    "max_processes" : 15000,
     "graceful_termination_timeout" : 10000,
+
     "direct_websocket" : true,
-    "websocket_ping_timeout" : 500,
-    "max_processes" : 15000
+    "websocket_ping_timeout" : 500
 }
 #+end_src
 
@@ -718,6 +742,9 @@ There are many different metrics which are grouped into several sections, and su
           },
           "router" : {
               // Hive Router related metrics.
+          },
+          "cluster" : {
+              // Hive Cluster related metrics.
           }
       },
       "clients" : {
@@ -832,6 +859,19 @@ This subsection describes the *hive.router* portion of the Hive statistics. Metr
 - =hive.router.routed_msgs= - the total number of Socket.IO messages (external events) routed to the client processes by the Router.
 
 - =hive.router.errors= - the total number of failed requests and other errors encountered by the Router.
+
+*** =hive.cluster=
+This subsection describes the *hive.cluster* portion of the Hive statistics. Metrics found in this subsection measure the state of the Hive Cluster Manager of a node:
+
+- =hive.cluster.nodes= - a JavaScript array of strings naming the connected cluster nodes,
+
+- =hive.cluster.size= - the number of nodes currently connected to the cluster,
+
+- =hive.cluster.calls= - the total number of cluster wide, synchronous requests performed by this nodes Cluster Manager,
+
+- =hive.cluster.casts= - the total number of cluster wide, asynchronous requests performed by this nodes Cluster Manager,
+
+- =hive.cluster.errors= - the total number of failed requests and other errors encountered by the Cluster Manager.
 
 *** =clients=
 This subsection describes the *clients* part of the Hive statistics. Each metric found in this section measures the general quantities related to the Client FSMs:
@@ -1273,6 +1313,8 @@ This section lists and gives a short destription of various error codes used thr
 
 - =redis_error= - Hive Redis Connector related error, usually signalizes problems with the Redis database encountered by the connector.
 
+- =cluster_error= - Hive Cluster related error (most likely a cluster collapse indication).
+
 - =router_error= - Hive Router related error (most likely an unhandled Hive Router request).
 
 - =bad_session_id= - tried accessing (via Hive Router) a nonexistent Session ID.
@@ -1585,6 +1627,7 @@ This subsection describes the metadata used by various Hive Hooks. The metadata 
       "sid" : "the Session ID of a Client",
       "state" : "the state of the Client worker",
       "trigger" : "the hook-triggering event or null if not present"
+      "trigger_id" : "the ACK id of the triggering event"
   }
 #+end_src
 
@@ -1598,6 +1641,7 @@ For example:
           "name" : "ping",
           "args" : ["pong"]
       },
+      "trigger_id" : "1+",
       "state" : {
           "initial_value" : null
       }
@@ -1776,6 +1820,7 @@ An example of a Hive Protocol based communication is presented below:
           "name" : "ping",
           "args" : []
       },
+      "trigger_id" : "",
       "state" : {
           "initial_value" : null
       }
@@ -1837,6 +1882,50 @@ The Hive-Backend interaction has been summarized on the following diagram:
 [[file:./img/hive_usage.pdf]]
 #+end_center
 
+#+latex: \pagebreak
+* Clusterization
+# <<<ref-cluster>>>
+Hive can be configured to run in a cluster, where various messages are propagated between several nodes to achieve some transparency of operation - for example, [[ref-pubsub][Pub-Sub channels]], even though distributed between several nodes, will act as a single facility, transparently forwarding messages to any connected clients.
+The following subsections sketch Hive clusterization and give some hints on Cluster naming convention and internal communication.
+
+** Clusterization basics
+In order to clusterize Hive you have to [[ref-cluster-config][configure]] relevant parameters and run several instances of the server. Everything else will be handled for you automatically. Instances need to know about at least one of currently live cluster nodes in order to successfully join a cluster.
+
+Every node in a Hive cluster is of the same rank, there is no distinction into master or slave nodes. This means that the cluster can be easily resized at run-time simply by starting new Hive instances which are configured to connect to any of the already running nodes.
+
+Each newly connected node will automatically start receiving all necessary messages comming from the rest of the Cluster and it'll act accordingly.
+
+** Cluster naming convention
+# <<<ref-cluster-naming-convention>>>
+
+Each Hive node has to be given a name in order to successfully form or join a cluster. The node name syntax is as follows:
+
+#+begin_src javascript
+IDPart [ '@' ( HostPart '.' DomainPart | IPAddress ) ]
+#+end_src
+
+The address part names the machine Hive is running on, usually this will be an =IPAddress=, but a *fully qualified domain name* can be used.
+The address part is optional in the configuration file - when left out, Hive will attempt to infere it from your hosts configuration. If inference is successful, the =HostPart= will contain the host name of your machine, and the =DomainPart= will contain the domain associated with your machines IP address.
+
+The =IDPart= is a short identificator of the particular Hive instance, it doesn't have to be unique as long as the entire name is unique.
+
+Similarily, the Hive Cluster has to be given a name in order for each Hive instance to identify other cluster members. The cluster name is largely arbitrary as long as it's a non-empty string.
+
+** Cluster-wide communication
+Currently, Hive nodes propagate several types of messages throughout the Hive Cluster:
+
+- any External Events routed using the Hive Router,
+- any Internal Events routed using the Hive Router,
+- any Internal Events routed using the Hive Pub-Sub facility - but only on the Pub-Sub Manager level, each Pub-Sub Channel propagates messages to the Clients locally.
+
+Additionally, Hive nodes will broadcast some messages in order to maintain the Cluster structure. These include:
+
+- heartbeats,
+- status updates,
+- connection/disconnection notifications,
+- etc.
+
+#+latex: \pagebreak
 * Hive Plugins
 # <<<ref-plugins>>>
 Hive Plugins framework is an elaborate way to define extentions for the Hive server. Detailed description of the Hive Plugins framework is outside of the scope of this document. This section describes the Hive Plugins framework and gives a brief description of the available built-in plugins.

@@ -1,15 +1,19 @@
 {
     "hive" : {
-    	"name" : "sample_hive@127.0.0.1",
-	"cluster_name" : "sample_hive_cluster",
-	
-        "port" : 8080,
+	"name" : "node2@127.0.0.1",
+    	"cluster_name" : "distributed_chat_example",
+
+	"cluster_nodes" : ["node1@127.0.0.1"],
+	"cluster_port_min" : 9100,
+	"cluster_port_max" : 9105,
+		
 	"acceptors" : 100,
-        "allowed_origins" : ["http://127.0.1.1", "ws://192.168.0.102", "null", "ws://localhost"],
+        "port" : 8079,
+        "allowed_origins" : ["null", "ws://localhost"],
 
 	"direct_websocket" : true,
 	"websocket_ping_timeout" : 2000,
-	
+
 	"max_processes" : 15000,
 	"max_client_slots" : 1000,
 	
@@ -19,7 +23,7 @@
     "socketio" : {
 	"heartbeat_timeout" : 15000,
 	"reconnect_timeout" : 120000,
-	"poll_timeout" : 500,
+	"poll_timeout" : 50,
 	"init_timeout" : 5000,
 	"session_timeout" : 3600000,
 	"transports" : ["websocket", "flashsocket", "xhr-polling"]
@@ -27,40 +31,22 @@
 
     "clients" : "./clients.json",
     "connectors" : "./connectors.json",
-
-    "pubsub" : {
-    	"channels" : {
-    	    "foo" : {
-		"privilege" : "public",
-		"timeout" : 1000
-	    },
-
-	    "bar" : {
-		"privilege" : "private",
-		"timeout" : 0
-	    },
-
-	    "baz" : {
-		"privilege" : "public",
-		"timeout" : 0
-	    }
-	}
-    },
+    "pubsub" : "./pubsub.json",
     
     "api" : {
     	"acceptors" : 100,
-	"port" : 1235,
+	"port" : 2235,
 	"hash" : "abcde12345"
     },
 
     "monitor" : {
         "acceptors" : 100,
-	"port" : 1234,
+	"port" : 2234,
 	"hash" : "12345abcde"
     },
 
     "log" : {
-        "dir" : "log/hive/",
+        "dir" : "log/node2/",
 	"console_level" : "debug",
 	"file_level" : "debug"
     }

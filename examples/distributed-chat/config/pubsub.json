@@ -1,0 +1,8 @@
+{
+    "channels" : {
+	"rooms" : {
+	    "privilege" : "public",
+	    "timeout" : 1000
+	}
+    }
+}

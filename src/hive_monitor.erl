@@ -5,6 +5,7 @@
 -export([start_link/0, init/1, handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
 -export([set/2, reset/1, get/0, get/1]).
 -export([inc/1, inc/2, dec/1, dec/2]).
+-export([log/2]).
 
 -include("hive_monitor.hrl").
 
@@ -27,6 +28,8 @@ terminate(_Reason, _State) ->
 init(real_init) ->
     %% FIXME Derp.
     init(?COUNTERS),
+    %% We also need some special metrics:
+    init(?CLUSTER_NODES, history),
     {ok, undefined};
 
 %% External API:
@@ -37,6 +40,12 @@ init(Counters) when is_list(Counters) ->
     lists:foreach(fun init/1, Counters);
 
 init(Counter) ->
+    init(Counter, counter).
+
+init(Metric, history) ->
+    folsom_metrics:new_history(Metric);
+
+init(Counter, counter) ->
     folsom_metrics:new_counter(Counter).
 
 get() ->
@@ -66,6 +75,9 @@ dec(Counter) ->
 
 dec(Counter, Value) ->
     folsom_metrics:notify(Counter, {dec, Value}, counter).
+
+log(Metric, Value) ->
+    folsom_metrics:notify({Metric, Value}).
 
 %% Gen Server handlers:
 handle_call(Msg, _From, State) ->
@@ -127,6 +139,10 @@ matches(_Pattern, _Value) ->
 
 %% Pattern matching disaster immenient...
 group(Value) when not(is_list(Value))->
+    Value;
+
+group([{_Timestamp, [{event, Value}]} | _Rest]) ->
+    %% NOTE This clause is used to extract most recent Folsom history item.
     Value;
 
 group(Metrics) ->

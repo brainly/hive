@@ -32,7 +32,7 @@ handle(Request, {dispatch, Prefix}) ->
     case cowboy_req:method(Request) of
         {<<"GET">>, Req} ->
             case hive_monitor:get(Prefix) of
-                {[]}   -> ErrorMsg = format("Requested metric \"~s\" does not exist.", [Prefix]),
+                {[]}   -> ErrorMsg = hive_error_utils:format("Requested metric \"~s\" does not exist.", [Prefix]),
                            Req2 = reply_no_log(404, make_json(bad_monitor_request, ErrorMsg), Req),
                            {ok, Req2, error};
 
@@ -48,7 +48,7 @@ handle(Request, {dispatch, Prefix}) ->
             {ok, Req2, done};
 
         {Method, Req} ->
-            ErrorMsg = format("Unsupported Hive Monitor access method: ~s.", [Method]),
+            ErrorMsg = hive_error_utils:format("Unsupported Hive Monitor access method: ~s.", [Method]),
             lager:warning(ErrorMsg),
             Req2 = reply_no_log(405, make_json(bad_monitor_request, ErrorMsg), Req),
             {ok, Req2, error}
@@ -67,6 +67,9 @@ info(Info, Request, State) ->
 %% Internal functions:
 update_gouges() ->
     %% NOTE Updates all the non-incremental counters arround the system on demand.
+    Nodes = hive_cluster:connected_nodes(),
+    hive_monitor:set(?CLUSTER_SIZE, length(Nodes)),
+    hive_monitor:log(?CLUSTER_NODES, Nodes),
     hive_monitor:set(?ROUTER_UPTIME, hive_router:uptime()),
     hive_monitor:set(?ROUTER_QUEUE, hive_router:msg_queue()),
     hive_monitor:set(?HIVE_UPTIME, hive:uptime()),
