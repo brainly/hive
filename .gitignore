@@ -7,4 +7,6 @@
 /.eunit
 *.bbl
 *.blg
+debian/hive.debhelper.log
+debian/hive/
 lager.config

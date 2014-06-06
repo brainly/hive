@@ -1,0 +1,11 @@
+Source: brainly-hive
+Section: unknown
+Priority: extra
+Maintainer: Kajetan Rzepecki <kajetan.rzepecki+github@gmail.com>
+Build-Depends: debhelper (>= 7.0.50~)
+Standards-Version: 3.8.4
+
+Package: brainly-hive
+Architecture: all
+Depends: ${shlibs:Depends}, ${misc:Depends}, esl-erlang (>= 1:16.b)
+Description: Hive v0.5.0

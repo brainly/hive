@@ -8,6 +8,8 @@ PLUGINS=plugins/
 SCHEMA=etc/schema/
 CONFIG=etc/hive.json
 
+TARGET=binary
+
 all: build
 
 build:
@@ -33,5 +35,17 @@ test-config:
 rev:
 	@sh priv/make_revision_tex.sh docs/revision.tex
 
+deb-package: deb-changelog deb-control
+	@debuild $(TARGET)
+
+deb-changelog:
+	@touch debian/changelog
+	@sh priv/make_changelog.sh > debian/changelog
+
+deb-control:
+	@touch debian/control
+	@sh priv/make_control.sh > debian/control
+
+.PHONY: clean
 clean:
 	@$(REBAR) clean
