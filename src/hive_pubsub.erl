@@ -152,11 +152,11 @@ handle_call({leave, Privilege, Pid, Cids, From}, _From, State) ->
                                                {error, {bad_channel_id, err_log("Tried unsubscribing an unknown channel: ~s",
                                                                                 [Cid])}}
                                        end,
-                                       fun({_Priv, Channel}) ->
+                                       fun(Channel) ->
                                                %% When there are some channels with a given Cid:
                                                hive_pubsub_channel:unsubscribe(Channel, Pid)
                                        end,
-                                       lists:zip(Cids, get_channels(Cids, State#state.sub_channels)))), State};
+                                       lists:zip(Cids, get_channels(Cids, State#state.pub_channels)))), State};
 
         {error, Error} ->
             {reply, reply(From, {error, Error}), State}
