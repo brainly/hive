@@ -1,7 +1,7 @@
 {
     "hive" : {
-    	"name" : "sample_hive@127.0.0.1",
-	"cluster_name" : "sample_hive_cluster",
+    	"name" : "ping@127.0.0.1",
+	"cluster_name" : "ping_cluster",
 	
         "port" : 8080,
 	"acceptors" : 100,
@@ -25,37 +25,72 @@
 	"transports" : ["websocket", "flashsocket", "xhr-polling"]
     },
 
-    "clients" : "./clients.json",
-    "connectors" : "./connectors.json",
-
     "pubsub" : {
     	"channels" : {
-    	    "foo" : {
-		"privilege" : "public",
-		"timeout" : 1000
-	    },
-
-	    "bar" : {
-		"privilege" : "private",
-		"timeout" : 0
-	    },
-
-	    "baz" : {
-		"privilege" : "public",
-		"timeout" : 0
+	    "ping" : {
+	    	"timeout" : 10000,
+		"privilege" : "public"
 	    }
 	}
+    },
+
+    "clients" : {
+	"state" : {
+	    "state_manager" : "sm.local",
+	    "initial_value" : null,
+	    "args" : null
+	},
+
+	"actions" : {
+	    "pong" : [
+	    	{
+		    "action" : "action.send_event",
+		    "args" : null
+		}
+	    ]
+	},
+
+	"hooks" : {
+	    "subscribe" : [
+	    	{
+		    "hook" : "utils.console_dump",
+		    "args" : "Subscribing!"
+		},
+		{
+		    "hook" : "pubsub.subscribe",
+		    "args" : "public"
+		}
+	    ],
+
+	    "ping" : [
+		{
+		    "hook" : "utils.console_dump",
+		    "args" : "Pinged!"
+		},
+		{
+		    "hook" : "pubsub.publish",
+		    "args" : {
+		    	"cids" : ["ping"]
+		    }
+		}
+	    ]
+	}
+    },
+
+    "connectors" : {
+	"rent_timeout" : 5000,
+	"pools" : {}
     },
     
     "api" : {
     	"acceptors" : 100,
-	"port" : 1235,
+	"port" : 1234,
 	"hash" : "abcde12345"
     },
 
     "monitor" : {
         "acceptors" : 100,
-	"port" : 1234,
+	"port" : 1235,
 	"hash" : "12345abcde"
     },
 

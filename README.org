@@ -2,7 +2,11 @@
 *Hive* is a scalable, *Socket.IO* based, Comet/PUSH application server written in *Erlang* that allows you kick it up a notch by introducing various real-time Comet services to your WebApps. It supports lot's of *plugins* and can easily communicate with, and *seamlessly integrate into existing backends* using HTTP or TCP!
 
 * Examples
-The =examples= directory contains a simple real-time chat server written in Python/JavaScript that uses *Hive* as its backbone. It's a good indicative of what can be done using *Hive*!
+The =examples= directory contains several examples that illustrate Hives capabilities:
+
+- =examples/ping= - a multi-ping server that shows Hives Publisher-Subscriber channels.
+- =examples/simple-chat= - a simple real-time chat server written in Python/JavaScript that uses Hive as its backbone.
+- =examples/distributed-chat= - an extension to the =simple-chat= that uses Redis and runs Hive in a two-node cluster configuration.
 
 * Documentation
 For a user guide containing various tips on using *Hive*, please consult the =docs= directory. It contains a detailed description of available plugins and features of *Hive*.

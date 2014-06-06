@@ -1,0 +1,2 @@
+* Ping
+This tiny example uses the default Hive config to create a multi-ping server. Clients can connect and send pings via the supplied =ping()= function and Hive will propagate it to all other clients. No special setup is required, just run Hive by invoking =make run=, point your browser to =examples/ping/ping.html= and use the console.
