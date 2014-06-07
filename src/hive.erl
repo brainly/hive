@@ -70,4 +70,3 @@ memory() ->
 
 processes() ->
     length(erlang:processes()).
-

@@ -1,4 +1,4 @@
-% Created 2014-05-29 czw 11:18
+% Created 2014-06-01 nie 21:46
 \documentclass[a4paper]{article}
 \usepackage{fontspec}
 \usepackage{fixltx2e}
@@ -239,7 +239,9 @@ After a quick boot-up you will be greeted by a log similar to this one (note tha
 18:21:02.852 [notice] Hive Plugins Manager started!
 18:21:02.860 [notice] Starting Hive Config Manager...
 18:21:02.886 [notice] Hive Config Manager started!
-18:21:02.886 [notice] Hive Environment Supervisor started!
+18:21:02.887 [notice] Starting Hive Cluster Manager...
+18:21:02.887 [notice] Hive Cluster Manager started!
+18:21:02.889 [notice] Hive Environment Supervisor started!
 18:21:02.894 [notice] Starting Hive Module Supervisor...
 18:21:02.918 [notice] Starting Hive Connectors Supervisor...
 18:21:02.925 [notice] Starting Hive Connectors Manager...
@@ -285,7 +287,8 @@ hive_root_sup                        - Top-level Hive supervisor.
 |-- hive_env_sup                     - Hive environment supervisor.
 |   |-- hive_config                  - Hive Config Manager.
 |   |-- hive_monitor                 - Hive Monitor Manager.
-|   '-- hive_plugins                 - Hive Plugins supervisor.
+|   |-- hive_plugins                 - Hive Plugins Manager.
+|   '-- hive_cluster                 - Hive Cluster Manager.
 '-- hive_sup                         - Hive Modules supervisor.
     |-- hive_connectors_sup          - Hive Connectors supervisor.
     |   |-- hive_connectors          - Hive Connectors Manager.
@@ -331,7 +334,7 @@ $ tree hive
   |-- ebin                   - Compiled Hive source files.
   |   '-- ...
   |-- etc                    - Hive configuration files.
-  |   |-- hive.json         - The default configuration file.
+  |   |-- hive.json          - The default configuration file.
   |   |-- schema             - Hive config validation files.
   |   '-- ...
   |-- include                - Hive Erlang include files.
@@ -347,30 +350,30 @@ $ tree hive
   |-- priv                   - Directory containing additional stuff.
   |   |-- start-dev.sh       - Hive running script (dev version).
   |   |-- start.sh           - Hive running script.
-  |   |-- prep_hive.erl     - A script that prepares Hives execution environment.
+  |   |-- prep_hive.erl      - A script that prepares Hives execution environment.
   |   |-- test_config.erl    - Hive configuration testing script.
-  |   |-- tsung_hive.xml    - A config file for Tsung.
+  |   |-- tsung_hive.xml     - A config file for Tsung.
   |   '-- ...
   |-- rebar                  - Rebar build tool.
   |-- rebar.config           - Rebar config (lists dependencies).
   |-- src                    - Hive Erlang source files.
-  |   |-- hive_client*      - Hive generic client code.
-  |   |-- hive_websocket*   - Hive WebSocket client related code.
-  |   |-- hive_xhr_polling* - Hive XHR-polling client related code.
-  |   |---hive_socketio*    - Hive Socket.IO related code.
-  |   |-- hive_connectors*  - Hive Connectors manager.
-  |   |-- hive_*_connector* - Various connectors.
-  |   |-- hive_*_client*    - Hive Client handler related code.
-  |   |-- hive_hooks*       - Hive Hooks related code.
-  |   |-- hive_events*      - Hive Internal Events related code.
-  |   |-- hive_monitor*     - Hive Monitor related code.
-  |   |-- hive_pubsub*      - Hive Pub-Sub related code.
-  |   |-- hive_router*      - Hive Router related code.
-  |   |-- hive_config*      - Hive Config related code.
-  |   |-- hive_api*         - Hive RESTful API related code.
-  |   |-- hive_*_sup*       - Various Hive supervisors.
+  |   |-- hive_client*       - Hive generic client code.
+  |   |-- hive_websocket*    - Hive WebSocket client related code.
+  |   |-- hive_xhr_polling*  - Hive XHR-polling client related code.
+  |   |---hive_socketio*     - Hive Socket.IO related code.
+  |   |-- hive_connectors*   - Hive Connectors manager.
+  |   |-- hive_*_connector*  - Various connectors.
+  |   |-- hive_*_client*     - Hive Client handler related code.
+  |   |-- hive_hooks*        - Hive Hooks related code.
+  |   |-- hive_events*       - Hive Internal Events related code.
+  |   |-- hive_monitor*      - Hive Monitor related code.
+  |   |-- hive_pubsub*       - Hive Pub-Sub related code.
+  |   |-- hive_router*       - Hive Router related code.
+  |   |-- hive_config*       - Hive Config related code.
+  |   |-- hive_api*          - Hive RESTful API related code.
+  |   |-- hive_*_sup*        - Various Hive supervisors.
   |   '-- ...
-  '-- test                   - Hive unit-tests.
+  '-- test                    - Hive unit-tests.
       '-- ...
 \end{verbatim}
 
@@ -473,13 +476,20 @@ null, "null", "*.*", "http://zadane.pl"
 
 \begin{itemize}
 \item \texttt{hive.graceful\_termination\_timeout} - the time (\textbf{in milliseconds}) after which Client Workers will be forced to terminate on server termination.
+\item \texttt{hive.max\_client\_slots} - the maximal number of clients that can be connected to Hive. It has to be \textbf{a positive integer},
 \end{itemize}
 
 \noindent
 Additional, optional parameters:
 
+\label{ref-cluster-config}
 
 \begin{itemize}
+\item \texttt{hive.name} - a string representing the name of this Hive instance, defaults to =''hive''=. It is described in detail in a \hyperref[sec-8-2]{later section},
+\item \texttt{hive.cluster\_name} - a string representing the name of the Hive cluster formed by this Hive instance.
+\item \texttt{hive.cluster\_nodes} - a JavaScript array of cluster node names to which this instance will attept to connect. Every element of this array is a \texttt{hive.name} of a Hive instance,
+\item \texttt{hive.cluster\_port\_min} - an integer in range (0, 65535) representing the lower bound of the range of ports used to maintain Hive cluster connections,
+\item \texttt{hive.cluster\_port\_max} - an integer in range (0, 65535) representing the upper bound of the range of ports used to maintain Hive cluster connections,
 \item \texttt{hive.direct\_websocket} - \textbf{a boolean} flag determining whether WebSocket-based clients should skip the Hive Router in order to speed up the client-server communication. Skipping the router involves a trade off in that the router won't be able to manage clients communication (so no Socket.IO event related router logs, possible message counts inconsistencies, etc).
 \item \texttt{hive.websocket\_ping\_timeout} - the timeout (\textbf{in milliseconds}) used by the  WebSocket connection handlers to determine whether they are still active; if there is no pong message received from the client for this amount of time, its Client worker will be terminated. It has to be \textbf{a positive integer}.
 \item \texttt{hive.max\_processes} - the maximal number of processes that can exist in the Erlang VM. It has to be \textbf{a positive integer}. Keep in mind that the actual maximal number of processes might be higher (courtesy of the Erlang VM).
@@ -491,13 +501,21 @@ Example values:
 
 \begin{minted}[]{javascript}
 "hive" : {
+    "name" : "hive@zadane.pl",
+    "cluster_name" : "hive_server_cluster",
+    "cluster_port_min" : 1234,
+    "cluster_port_max" : 2345,
+
     "acceptors" : 1000,
     "port" : 8080,
     "allowed_origins" : ["http://zadane.pl"],
+
+    "max_client_slots" : 1000,
+    "max_processes" : 15000,
     "graceful_termination_timeout" : 10000,
+
     "direct_websocket" : true,
-    "websocket_ping_timeout" : 500,
-    "max_processes" : 15000
+    "websocket_ping_timeout" : 500
 }
 \end{minted}
 \subsubsection{\texttt{socketio}}
@@ -557,8 +575,8 @@ Required parameters:
 \begin{itemize}
 \item \texttt{clients.actions} - \textbf{a JSON object} listing various \textbf{internal event} dispatchers recognized by the Client Workers on a \textbf{per-action} basis, that is, each field names an action will trigger Hive Internal Event dispatchers listed in this field's value. The value has to be \textbf{a JavaScript array} of Hive Internal Event dispatcher descriptors, each of which has to be \textbf{a JSON object} that defines several fields:
 \begin{itemize}
-\item \texttt{action} - the name of the Hive Internal Event dispatcher to run when triggered. Available Hive Internal Event dispatchers are described in greated detail in \hyperref[sec-8-3]{a later section}.
-\item \texttt{args} - the arguments passed to the Hive Internal Event dispatcher when it is run. Accepted argument descriptions are found in \hyperref[sec-8-3]{a later section}.
+\item \texttt{action} - the name of the Hive Internal Event dispatcher to run when triggered. Available Hive Internal Event dispatchers are described in greated detail in \hyperref[sec-9-3]{a later section}.
+\item \texttt{args} - the arguments passed to the Hive Internal Event dispatcher when it is run. Accepted argument descriptions are found in \hyperref[sec-9-3]{a later section}.
 \end{itemize}
 \end{itemize}
 
@@ -567,8 +585,8 @@ Required parameters:
 \begin{itemize}
 \item \texttt{clients.hooks} - \textbf{a JSON object} containing various Hive Hook definitions on a \textbf{per-event} basis, that is, each field of the JSON object names an event that will trigger Hive Hooks listed in this field's value. The value has to be \textbf{a JavaScript array} of Hive Hook descriptors, each of which has to be \textbf{a JSON object} that defines several fields:
 \begin{itemize}
-\item \texttt{hook} - the name of the Hive Hook to run when triggered. Available Hive Hooks are described in greated detail in \hyperref[sec-8-2]{a later section}.
-\item \texttt{args} - the arguments passed to the Hive Hook when it is run. Accepted arguments descriptions are found in \hyperref[sec-8-2]{a later section}.
+\item \texttt{hook} - the name of the Hive Hook to run when triggered. Available Hive Hooks are described in greated detail in \hyperref[sec-9-2]{a later section}.
+\item \texttt{args} - the arguments passed to the Hive Hook when it is run. Accepted arguments descriptions are found in \hyperref[sec-9-2]{a later section}.
 \end{itemize}
 \end{itemize}
 
@@ -627,8 +645,8 @@ Required parameters:
 \begin{itemize}
 \item \texttt{size} - the base size of the pool; \textbf{a non-negative integer}.
 \item \texttt{overflow} - the maximum number of additional workers that are created under heavy server load (the total number of available workers is therefore \texttt{size} + \texttt{overflow}). It has to be \textbf{a non-negative integer}.
-\item \texttt{args} - the arguments that will be passed to the connector workers at initialization. The accepted values depend heavily on the type of the connector, and will be described later in \hyperref[sec-8-4]{an appropriate section}.
-\item \texttt{connector} - the name of the connector plugin to use for this pool. It has to be \textbf{a string}. The available Connector pools will be described in \hyperref[sec-8-4]{a later section}.
+\item \texttt{args} - the arguments that will be passed to the connector workers at initialization. The accepted values depend heavily on the type of the connector, and will be described later in \hyperref[sec-9-4]{an appropriate section}.
+\item \texttt{connector} - the name of the connector plugin to use for this pool. It has to be \textbf{a string}. The available Connector pools will be described in \hyperref[sec-9-4]{a later section}.
 \end{itemize}
 \end{itemize}
 
@@ -879,6 +897,9 @@ There are many different metrics which are grouped into several sections, and su
         },
         "router" : {
             // Hive Router related metrics.
+        },
+        "cluster" : {
+            // Hive Cluster related metrics.
         }
     },
     "clients" : {
@@ -989,8 +1010,21 @@ This subsection describes the \textbf{hive.router} portion of the Hive statistic
 \item \texttt{hive.router.routed\_msgs} - the total number of Socket.IO messages (external events) routed to the client processes by the Router.
 \item \texttt{hive.router.errors} - the total number of failed requests and other errors encountered by the Router.
 \end{itemize}
-\subsubsection{\texttt{clients}}
+\subsubsection{\texttt{hive.cluster}}
 \label{sec-4-2-4}
+
+This subsection describes the \textbf{hive.cluster} portion of the Hive statistics. Metrics found in this subsection measure the state of the Hive Cluster Manager of a node:
+
+
+\begin{itemize}
+\item \texttt{hive.cluster.nodes} - a JavaScript array of strings naming the connected cluster nodes,
+\item \texttt{hive.cluster.size} - the number of nodes currently connected to the cluster,
+\item \texttt{hive.cluster.calls} - the total number of cluster wide, synchronous requests performed by this nodes Cluster Manager,
+\item \texttt{hive.cluster.casts} - the total number of cluster wide, asynchronous requests performed by this nodes Cluster Manager,
+\item \texttt{hive.cluster.errors} - the total number of failed requests and other errors encountered by the Cluster Manager.
+\end{itemize}
+\subsubsection{\texttt{clients}}
+\label{sec-4-2-5}
 
 This subsection describes the \textbf{clients} part of the Hive statistics. Each metric found in this section measures the general quantities related to the Client FSMs:
 
@@ -1002,7 +1036,7 @@ This subsection describes the \textbf{clients} part of the Hive statistics. Each
 \item \texttt{clients.errors} - the total number of errors encountered by the client processes.
 \end{itemize}
 \subsubsection{\texttt{clients.states}}
-\label{sec-4-2-5}
+\label{sec-4-2-6}
 
 This subsection describes the \textbf{clients.states} portion of the Hive statistics. Each metric found here describes the operation of the Client FSMs - state transitions and such:
 
@@ -1015,7 +1049,7 @@ This subsection describes the \textbf{clients.states} portion of the Hive statis
 \item \texttt{clients.states.transitions} - the total number of state transitions of the client FSMs.
 \end{itemize}
 \subsubsection{\texttt{clients.events}}
-\label{sec-4-2-6}
+\label{sec-4-2-7}
 
 This subsection describes the \textbf{clients.events} portion of the Hive statistics. Each metric found here describes the the operation of the Client logic - dispatched Socket.IO events, events received from the rest of the Hive server, etc:
 
@@ -1031,7 +1065,7 @@ This subsection describes the \textbf{clients.events} portion of the Hive statis
 \item \texttt{clients.events.control\_errors} - the total number of errors encountered when processing control events.
 \end{itemize}
 \subsubsection{\texttt{clients.state\_mgr}}
-\label{sec-4-2-7}
+\label{sec-4-2-8}
 
 This subsection describes the \textbf{clients.state$_{\mathrm{mgr}}$} portion of the Hive statistics. Metrics in this subsection correspond to various Client State Manager quantities.
 
@@ -1045,7 +1079,7 @@ This subsection describes the \textbf{clients.state$_{\mathrm{mgr}}$} portion of
 \item \texttt{clients.state\_mgr.cleanup} - the total number of State Manager \texttt{cleanup} requests.
 \end{itemize}
 \subsubsection{\texttt{clients.transports}}
-\label{sec-4-2-8}
+\label{sec-4-2-9}
 
 This subsection describes the \textbf{clients.transports} portion of the Hive statistics. Metrics in this subsection measure the underlying transport protocols state and operation. Currently there are two subsections defined, for \textbf{WebSocket} and \textbf{XHR-polling} transports respectively:
 
@@ -1066,7 +1100,7 @@ This subsection describes the \textbf{clients.transports} portion of the Hive st
 \item \texttt{clients.transports.websocket.hang\_up} - the total number of prematurely closed connections (for example, browser closing).
 \end{itemize}
 \subsubsection{\texttt{clients.hooks}}
-\label{sec-4-2-9}
+\label{sec-4-2-10}
 
 This subsection describes the \textbf{clients.hooks} portion of the Hive statistics. Metrics in this subsection measure various quantities related to the Hive Hooks facility:
 
@@ -1087,7 +1121,7 @@ Additionally, the same set of counters is defined on a per-hook-event basis. For
 \begin{itemize}
 
 \item \texttt{clients.hooks.hp}\\
-\label{sec-4-2-9-1}%
+\label{sec-4-2-10-1}%
 The Hive Protocol hook related metrics.
 
 
@@ -1109,7 +1143,7 @@ Additionally, the same set of counters is defined on a per-hook-event basis. For
 
 
 \item \texttt{clients.hooks.pubsub}\\
-\label{sec-4-2-9-2}%
+\label{sec-4-2-10-2}%
 The Hive Pub-Sub hook related metrics.
 
 
@@ -1131,7 +1165,7 @@ Additionally, the same set of counters is defined on a per-hook-event basis. For
 
 \end{itemize} % ends low level
 \subsubsection{\texttt{connectors}}
-\label{sec-4-2-10}
+\label{sec-4-2-11}
 
 This subsection describes the \textbf{connectors} part of the Hive statistics. Each metric found here measures the general quantities related to the Hive Connectors:
 
@@ -1151,7 +1185,7 @@ This subsection describes the \textbf{connectors} part of the Hive statistics. E
 \noindent
 The connector pools are grouped by their type and the name they were given, so it is possible to measure multiple instances of each connector pool type.
 \subsubsection{\texttt{connectors.http}}
-\label{sec-4-2-11}
+\label{sec-4-2-12}
 
 This subsection describes the \textbf{connectors.http.\$(name)} portion of the Hive statistics. Each metric found here is related to an HTTP connector pool named \textbf{name}:
 
@@ -1165,7 +1199,7 @@ This subsection describes the \textbf{connectors.http.\$(name)} portion of the H
 \item \texttt{connectors.http.\$(name).async\_posts} - the total number of asynchronous POST requests.
 \end{itemize}
 \subsubsection{\texttt{connectors.redis}}
-\label{sec-4-2-12}
+\label{sec-4-2-13}
 
 This subsection describes the \textbf{connectors.redis.\$(name)} portion of the Hive statistics. Each metric in this subsection is related to the Redis connector pool named \textbf{name}:
 
@@ -1177,7 +1211,7 @@ This subsection describes the \textbf{connectors.redis.\$(name)} portion of the 
 \item \texttt{connectors.redis.\$(name).queries} - the total number of Redis queries sent by the workers.
 \end{itemize}
 \subsubsection{\texttt{connectors.tcp}}
-\label{sec-4-2-13}
+\label{sec-4-2-14}
 
 This subsection describes the \textbf{connectors.tcp.\$(name)} part of the Hive statistics. Each metric in here is related to the TCP connector pool named \textbf{name}:
 
@@ -1190,7 +1224,7 @@ This subsection describes the \textbf{connectors.tcp.\$(name)} part of the Hive 
 \item \texttt{connectors.tcp.\$(name).recv} - the total number of \textbf{recv} requests processed by the workers.
 \end{itemize}
 \subsubsection{\texttt{pubsub}}
-\label{sec-4-2-14}
+\label{sec-4-2-15}
 
 This subsection describes the \textbf{pubsub} portion of the Hive statistics. Metrics in this subsection measure various quantities related to the Hive Pub-Sub facility:
 
@@ -1224,7 +1258,7 @@ Additionally, a similar set of counters is defined on a per-channel-prefix basis
 \item \texttt{pubsub.channels.\$(name).published\_events} - the total number of events published on channels with prefix \textbf{name}.
 \end{itemize}
 \subsubsection{\texttt{api}}
-\label{sec-4-2-15}
+\label{sec-4-2-16}
 
 This subsection describes the \textbf{api} portion of the Hive statistics. Metrics in this subsection measure various quantities related to the Hive API Server:
 
@@ -1234,7 +1268,7 @@ This subsection describes the \textbf{api} portion of the Hive statistics. Metri
 \item \texttt{api.errors} - the total number of errors encountered by the Hive API Server while processing requests.
 \end{itemize}
 \subsubsection{\texttt{api.hive}}
-\label{sec-4-2-16}
+\label{sec-4-2-17}
 
 This subsection describes the \textbf{api.hive} portion of the Hive statistics. Metrics in this subsection measure various quantities related to the Pub-Sub part of the Hive API:
 
@@ -1244,7 +1278,7 @@ This subsection describes the \textbf{api.hive} portion of the Hive statistics. 
 \item \texttt{api.hive.errors} - the total number of errors encountered by the Hive API Server while processing general requests.
 \end{itemize}
 \subsubsection{\texttt{api.router}}
-\label{sec-4-2-17}
+\label{sec-4-2-18}
 
 This subsection describes the \textbf{api.router} portion of the Hive statistics. Metrics in this subsection measure various quantities related to the Pub-Sub part of the Hive API:
 
@@ -1254,7 +1288,7 @@ This subsection describes the \textbf{api.router} portion of the Hive statistics
 \item \texttt{api.pubsub.errors} - the total number of errors encountered by the Hive API Server while processing Router related requests.
 \end{itemize}
 \subsubsection{\texttt{api.pubsub}}
-\label{sec-4-2-18}
+\label{sec-4-2-19}
 
 This subsection describes the \textbf{api.pubsub} portion of the Hive statistics. Metrics in this subsection measure various quantities related to the Pub-Sub part of the Hive API:
 
@@ -1264,7 +1298,7 @@ This subsection describes the \textbf{api.pubsub} portion of the Hive statistics
 \item \texttt{api.pubsub.errors} - the total number of errors encountered by the Hive API Server while processing Pub-Sub related requests.
 \end{itemize}
 \subsubsection{\texttt{api.clients}}
-\label{sec-4-2-19}
+\label{sec-4-2-20}
 
 This subsection describes the \textbf{api.clients} portion of the Hive statistics. Metrics in this subsection measure various quantities related to the Clients related parte of the Hive API:
 
@@ -1471,6 +1505,7 @@ This section lists and gives a short destription of various error codes used thr
 \item \texttt{tcp\_error} - Hive TCP Connector related error, usually signalizes a TCP socket error encountered by the connector.
 \item \texttt{hp\_error} - Hive Protocol Hook related error, usually signalizes a problem with the backend that Hive talks to.
 \item \texttt{redis\_error} - Hive Redis Connector related error, usually signalizes problems with the Redis database encountered by the connector.
+\item \texttt{cluster\_error} - Hive Cluster related error (most likely a cluster collapse indication).
 \item \texttt{router\_error} - Hive Router related error (most likely an unhandled Hive Router request).
 \item \texttt{bad\_session\_id} - tried accessing (via Hive Router) a nonexistent Session ID.
 \item \texttt{pubsub\_error} - Hive Pub-Sub related error (most likely an unhandled Hive Pub-Sub request).
@@ -1650,7 +1685,7 @@ The following subsections describe various parts of the Hive API. Each section n
 \begin{itemize}
 \item \texttt{POST} - assumes the body of the request is an \textbf{internal event} (or a JavaScript array of internal events) and routes it to the \texttt{sid} Client worker.
 \end{itemize}
-\item Data format - an internal event, as described in \hyperref[sec-8-3]{a later section}.
+\item Data format - an internal event, as described in \hyperref[sec-9-3]{a later section}.
 \end{itemize}
 \subsubsection{\texttt{/pubsub/action/cid/}}
 \label{sec-6-1-6}
@@ -1663,7 +1698,7 @@ The following subsections describe various parts of the Hive API. Each section n
 \begin{itemize}
 \item \texttt{POST} - assumes the body of the request is an \textbf{internal event} (or a JavaScript array of internal events) and publishes it to the Hive Pub-Sub channel \texttt{cid}.
 \end{itemize}
-\item Data format - an internal event, as described in \hyperref[sec-8-3]{a later section}.
+\item Data format - an internal event, as described in \hyperref[sec-9-3]{a later section}.
 \end{itemize}
 \subsubsection{\texttt{/pubsub/publish/cid/}}
 \label{sec-6-1-7}
@@ -1731,7 +1766,7 @@ Once the Socket.IO handshake has been finalized, Client-Server communication may
 
 
 \begin{itemize}
-\item \textbf{running event hooks} - described in greater detail \hyperref[sec-7-1-4]{here} and \hyperref[sec-8-2]{here}; this may generate \textbf{internal events} (internal as in ``originating from the Brainly.com infrastructure'') which are handled similarly to the external ones, producing replies, state updates or running other event hooks, in turn generating even more internal events,
+\item \textbf{running event hooks} - described in greater detail \hyperref[sec-7-1-4]{here} and \hyperref[sec-9-2]{here}; this may generate \textbf{internal events} (internal as in ``originating from the Brainly.com infrastructure'') which are handled similarly to the external ones, producing replies, state updates or running other event hooks, in turn generating even more internal events,
 \item \textbf{updating the client worker state} - described \hyperref[sec-7-1-5]{here},
 \item \textbf{sending a reply} - the trivial case, where a reply is sent to the client immediately (this is generally used for Socket.IO control messages, error handling and such).
 \end{itemize}
@@ -1780,7 +1815,7 @@ This subsection describes the Hive Hooks facility. Hooks are used to dispatch re
 
 \item Hook basics\\
 \label{sec-7-1-4-1}%
-The Hive hooks are defined on a per-event basis, that is, each event type may (or may not) have several hooks associated with it. These hooks will be triggered, and actions they encapsulate will be performed each time an event of that type is received by a Client worker. This holds true for all \textbf{external events} (those originating from the Client) but not for all \textbf{internal events} (those originating from the rest of the system), the later must request further event dispatch (described \hyperref[sec-8-3]{here}). There are several \textbf{special event types} that trigger Hive hooks, that are not received from the Client nor the rest of the system:
+The Hive hooks are defined on a per-event basis, that is, each event type may (or may not) have several hooks associated with it. These hooks will be triggered, and actions they encapsulate will be performed each time an event of that type is received by a Client worker. This holds true for all \textbf{external events} (those originating from the Client) but not for all \textbf{internal events} (those originating from the rest of the system), the later must request further event dispatch (described \hyperref[sec-9-3]{here}). There are several \textbf{special event types} that trigger Hive hooks, that are not received from the Client nor the rest of the system:
 
 
 \begin{itemize}
@@ -1790,7 +1825,7 @@ The Hive hooks are defined on a per-event basis, that is, each event type may (o
 \end{itemize}
 
 \noindent
-Each Hive hook encapsulates a simple action that ts performes upon its invocation. The concrete actions depend on the hook type, and are described in \hyperref[sec-8-2]{a later section}, but a general convention is kept that each action is described in terms of \textbf{metadata}, \textbf{arguments}, \textbf{modification} and \textbf{return values}:
+Each Hive hook encapsulates a simple action that ts performes upon its invocation. The concrete actions depend on the hook type, and are described in \hyperref[sec-9-2]{a later section}, but a general convention is kept that each action is described in terms of \textbf{metadata}, \textbf{arguments}, \textbf{modification} and \textbf{return values}:
 
 
 \begin{itemize}
@@ -1810,7 +1845,7 @@ Each Hive hook encapsulates a simple action that ts performes upon its invocatio
 Hooks are run until either of \textbf{stop} or \textbf{error} result is encountered or until there are no more hooks to run. All \textbf{replies} are accumulated and sent to the Client as a batch. Hook order \textbf{does} matter, since each hook might modify the Client workers state, which will be then passed to the next hook in the list.
 
 \noindent
-Hook actions may produce \textbf{internal events} that will be dispatched the same way as mentioned \hyperref[sec-8-3]{previously}.
+Hook actions may produce \textbf{internal events} that will be dispatched the same way as mentioned \hyperref[sec-9-3]{previously}.
 
 \noindent
 Example hook definitions:
@@ -1848,6 +1883,7 @@ This subsection describes the metadata used by various Hive Hooks. The metadata 
     "sid" : "the Session ID of a Client",
     "state" : "the state of the Client worker",
     "trigger" : "the hook-triggering event or null if not present"
+    "trigger_id" : "the ACK id of the triggering event"
 }
 \end{minted}
 
@@ -1865,6 +1901,7 @@ For example:
         "name" : "ping",
         "args" : ["pong"]
     },
+    "trigger_id" : "1+",
     "state" : {
         "initial_value" : null
     }
@@ -1918,7 +1955,7 @@ The \texttt{initial\_value} may be \textbf{any JSON value}, however since the St
 
 
 \noindent
-A list all available State Managers and their configuration parameters can be found \hyperref[sec-8-5]{here}.
+A list all available State Managers and their configuration parameters can be found \hyperref[sec-9-5]{here}.
 \subsection{Service Connectors}
 \label{sec-7-2}
 
@@ -1927,7 +1964,7 @@ This section describes other details of the Hive Connectors facility. The Hive C
 Each pool can be \textbf{named} and has a configurable size that may increase temporarily during run-time, therefore each pool can be described in terms of its \textbf{name}, a \textbf{connector plugin}, \textbf{size} and \textbf{overflow} (the maximum number of additional worker processes to spawn under heavy server load) and \textbf{arguments} it uses for set-up, which, incidentally, are the configuration parameters required by each Hive Connectors pool.
 
 \noindent
-A list all available Connector pools can be found \hyperref[sec-8-4]{here}.
+A list all available Connector pools can be found \hyperref[sec-9-4]{here}.
 \subsubsection{Connectors summary}
 \label{sec-7-2-1}
 
@@ -1966,7 +2003,7 @@ Channel (un)subscriptions can be managed in either of the following ways:
 
 \begin{itemize}
 \item via the Hive API Server - as described \hyperref[sec-6-1-6]{here},
-\item via the Hive Pub-Sub Hook - as described \hyperref[sec-8-2-4]{here}.
+\item via the Hive Pub-Sub Hook - as described \hyperref[sec-9-2-4]{here}.
 \end{itemize}
 
 \noindent
@@ -2042,8 +2079,8 @@ The \textbf{Hive Protocol} is a set of communication rules and data formats that
 
 
 \begin{itemize}
-\item \textbf{Internal Events} \& \textbf{Client Metadata JSON} - described in detail \hyperref[sec-8-3]{here} and \hyperref[sec-7-1-4-2]{here}.
-\item \textbf{Hive Protocol hook} - described in detail \hyperref[sec-8-2-7]{here}.
+\item \textbf{Internal Events} \& \textbf{Client Metadata JSON} - described in detail \hyperref[sec-9-3]{here} and \hyperref[sec-7-1-4-2]{here}.
+\item \textbf{Hive Protocol hook} - described in detail \hyperref[sec-9-2-7]{here}.
 \item \textbf{Hive API} - described in detail \hyperref[sec-6]{previously}.
 \end{itemize}
 
@@ -2087,6 +2124,7 @@ An example of a Hive Protocol based communication is presented below:
         "name" : "ping",
         "args" : []
     },
+    "trigger_id" : "",
     "state" : {
         "initial_value" : null
     }
@@ -2135,7 +2173,7 @@ An example of a Hive Protocol based communication is presented below:
 \subsubsection{Non-Erlang modules summary}
 \label{sec-7-4-2}
 
-The Hive-Backend interaction is somewhat simplistic. It uses all of the major built-it Hive facilities such as the \hyperref[sec-7-1-4]{Hive Hooks}, \hyperref[sec-8-3]{Hive Internal Event dispatchers} and \hyperref[sec-6]{Hive API servers} and can be divided into two itertwinded flows that run simultaneously
+The Hive-Backend interaction is somewhat simplistic. It uses all of the major built-it Hive facilities such as the \hyperref[sec-7-1-4]{Hive Hooks}, \hyperref[sec-9-3]{Hive Internal Event dispatchers} and \hyperref[sec-6]{Hive API servers} and can be divided into two itertwinded flows that run simultaneously
 
 
 \begin{itemize}
@@ -2149,13 +2187,73 @@ The Hive-Backend interaction has been summarized on the following diagram:
 \begin{center}
 \includegraphics[scale=1.0]{./img/hive_usage.pdf}
 \end{center}
-\section{Hive Plugins}
+
+\pagebreak
+\section{Clusterization}
 \label{sec-8}
+\label{ref-cluster}
+
+Hive can be configured to run in a cluster, where various messages are propagated between several nodes to achieve some transparency of operation - for example, \hyperref[sec-7-3]{Pub-Sub channels}, even though distributed between several nodes, will act as a single facility, transparently forwarding messages to any connected clients.
+The following subsections sketch Hive clusterization and give some hints on Cluster naming convention and internal communication.
+\subsection{Clusterization basics}
+\label{sec-8-1}
+
+In order to clusterize Hive you have to \hyperref[ref-cluster-config]{configure} relevant parameters and run several instances of the server. Everything else will be handled for you automatically. Instances need to know about at least one of currently live cluster nodes in order to successfully join a cluster.
+
+Every node in a Hive cluster is of the same rank, there is no distinction into master or slave nodes. This means that the cluster can be easily resized at run-time simply by starting new Hive instances which are configured to connect to any of the already running nodes.
+
+Each newly connected node will automatically start receiving all necessary messages comming from the rest of the Cluster and it'll act accordingly.
+\subsection{Cluster naming convention}
+\label{sec-8-2}
+\label{ref-cluster-naming-convention}
+
+
+Each Hive node has to be given a name in order to successfully form or join a cluster. The node name syntax is as follows:
+
+
+\begin{minted}[]{javascript}
+IDPart [ '@' ( HostPart '.' DomainPart | IPAddress ) ]
+\end{minted}
+
+
+
+
+The address part names the machine Hive is running on, usually this will be an \texttt{IPAddress}, but a \textbf{fully qualified domain name} can be used.
+The address part is optional in the configuration file - when left out, Hive will attempt to infere it from your hosts configuration. If inference is successful, the \texttt{HostPart} will contain the host name of your machine, and the \texttt{DomainPart} will contain the domain associated with your machines IP address.
+
+The \texttt{IDPart} is a short identificator of the particular Hive instance, it doesn't have to be unique as long as the entire name is unique.
+
+Similarily, the Hive Cluster has to be given a name in order for each Hive instance to identify other cluster members. The cluster name is largely arbitrary as long as it's a non-empty string.
+\subsection{Cluster-wide communication}
+\label{sec-8-3}
+
+Currently, Hive nodes propagate several types of messages throughout the Hive Cluster:
+
+
+\begin{itemize}
+\item any External Events routed using the Hive Router,
+\item any Internal Events routed using the Hive Router,
+\item any Internal Events routed using the Hive Pub-Sub facility - but only on the Pub-Sub Manager level, each Pub-Sub Channel propagates messages to the Clients locally.
+\end{itemize}
+
+Additionally, Hive nodes will broadcast some messages in order to maintain the Cluster structure. These include:
+
+
+\begin{itemize}
+\item heartbeats,
+\item status updates,
+\item connection/disconnection notifications,
+\item etc.
+\end{itemize}
+
+\pagebreak
+\section{Hive Plugins}
+\label{sec-9}
 \label{ref-plugins}
 
 Hive Plugins framework is an elaborate way to define extentions for the Hive server. Detailed description of the Hive Plugins framework is outside of the scope of this document. This section describes the Hive Plugins framework and gives a brief description of the available built-in plugins.
 \subsection{Plugins basics}
-\label{sec-8-1}
+\label{sec-9-1}
 
 Hive Plugins reside in the \textbf{plugins} directory and are written in the Erlang programming language. Plugins are \emph{loosely} structured and do not have to reside in a single module, however plugins must follow several conventions:
 
@@ -2210,10 +2308,10 @@ Every plugin expects to receive a configuration descriptor on initialization. Th
 \noindent
 The built-in plugins are described shortly in the following subsections.
 \subsection{Client Hooks}
-\label{sec-8-2}
+\label{sec-9-2}
 \label{ref-hooks}
 \subsubsection{\texttt{utils.echo}}
-\label{sec-8-2-1}
+\label{sec-9-2-1}
 
 
 Echoes any received Socket.IO messages back to the Client.
@@ -2234,7 +2332,7 @@ Example declarations:
 { "hook" : "utils.echo", "args" : { "name" : "event", "args" : "arguments" } }
 \end{minted}
 \subsubsection{\texttt{utils.console\_dump}}
-\label{sec-8-2-2}
+\label{sec-9-2-2}
 
 Dumps the state of a Client worker to the console together with a distinct message passed as an argument. Meant for debugging purposes.
 
@@ -2253,7 +2351,7 @@ Example declaration:
 { "hook" : "utils.console_dump", "args" : "Hello Hive!" }
 \end{minted}
 \subsubsection{\texttt{utils.dispatch}}
-\label{sec-8-2-3}
+\label{sec-9-2-3}
 
 Dispatches on the triggering external event as if it were an interternal one.
 
@@ -2272,7 +2370,7 @@ Example declaration:
 { "hook" : "utils.dispatch", "args" : null }
 \end{minted}
 \subsubsection{\texttt{pubsub.subscribe}}
-\label{sec-8-2-4}
+\label{sec-9-2-4}
 \label{ref-hook_pubsub}
 
 
@@ -2315,7 +2413,7 @@ Example triggering event (causes subscription to channels \texttt{foo.bar.baz}, 
 }
 \end{minted}
 \subsubsection{\texttt{pubsub.unsubscribe}}
-\label{sec-8-2-5}
+\label{sec-9-2-5}
 
 
 Unsubscribes a Client from the Hive Pub-Sub channels specified in arguments of the triggering event.
@@ -2357,7 +2455,7 @@ Example triggering event (causes unsubscription from channels \texttt{foo.bar.ba
 }
 \end{minted}
 \subsubsection{\texttt{pubsub.publish}}
-\label{sec-8-2-6}
+\label{sec-9-2-6}
 
 
 Publishes internal events passed as the arguments of the triggering event on a Hive Pub-Sub channels specified in arguments.
@@ -2400,7 +2498,7 @@ Example triggering event (causes the Client to publish events on Hive Pub-Sub ch
 }
 \end{minted}
 \subsubsection{\texttt{hp.get}}
-\label{sec-8-2-7}
+\label{sec-9-2-7}
 \label{ref-hive_protocol_hook}
 
 Performs a synchronous request, similar in semantics to an HTTP GET, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed \hyperref[ref-cp_connector]{here}).
@@ -2426,7 +2524,7 @@ Example declaration:
 }
 \end{minted}
 \subsubsection{\texttt{hp.put}}
-\label{sec-8-2-8}
+\label{sec-9-2-8}
 
 Performs an asynchronous request, similar in semantics to an HTTP PUT, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed \hyperref[ref-cp_connector]{here}).
 
@@ -2451,7 +2549,7 @@ Example declaration:
 }
 \end{minted}
 \subsubsection{\texttt{hp.post}}
-\label{sec-8-2-9}
+\label{sec-9-2-9}
 
 Performs a synchronous request, similar in semantics to an HTTP POST, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed \hyperref[ref-cp_connector]{here}).
 
@@ -2476,7 +2574,7 @@ Example declaration:
 }
 \end{minted}
 \subsection{Internal Events}
-\label{sec-8-3}
+\label{sec-9-3}
 \label{ref-internal_events}
 \label{ref-hive_events}
 
@@ -2497,7 +2595,7 @@ Internal events are used to control the Hive server. These events are generated 
 \noindent
 Currently supported actions are listed below.
 \subsubsection{\texttt{action.stop}}
-\label{sec-8-3-1}
+\label{sec-9-3-1}
 
 Stops the Client worker. \texttt{args} is \textbf{a string} with a short termination reason. Example event:
 
@@ -2524,7 +2622,7 @@ Example declaration:
 ]
 \end{minted}
 \subsubsection{\texttt{action.error}}
-\label{sec-8-3-2}
+\label{sec-9-3-2}
 
 Signalizes an error to the Client worker. \texttt{args} is \textbf{a string} with a short error description. The error is sent to the Client as oon as possible. Example event:
 
@@ -2551,7 +2649,7 @@ Example declaration:
 ]
 \end{minted}
 \subsubsection{\texttt{action.send\_event}, \texttt{action.send\_message}, \texttt{action.send\_json}}
-\label{sec-8-3-3}
+\label{sec-9-3-3}
 
 Replies to the Client using event/message/json Socket.IO message types. \texttt{args} is \textbf{a JSON encoded reply}. Example event:
 
@@ -2596,7 +2694,7 @@ Example declarations:
 ]
 \end{minted}
 \subsubsection{\texttt{action.update\_state}}
-\label{sec-8-3-4}
+\label{sec-9-3-4}
 
 Updates the internal Client worker state via its State Manager. Assumes \texttt{args} to be \textbf{a JSON object}, and sets each field-name key to its corresponding value in the internal state. Example event:
 
@@ -2626,7 +2724,7 @@ Example declaration:
 ]
 \end{minted}
 \subsubsection{\texttt{action.dispatch}}
-\label{sec-8-3-5}
+\label{sec-9-3-5}
 
 Dispatches the event passed in \texttt{args} and treats it as an external event causing associated hooks to trigger. Assumes \texttt{args} to be a valid Socket.IO event. Example event:
 
@@ -2655,7 +2753,7 @@ Example declaration:
 ]
 \end{minted}
 \subsubsection{\texttt{action.add\_hooks}}
-\label{sec-8-3-6}
+\label{sec-9-3-6}
 
 Dynamically validates, initializes and adds hooks to the Client worker hooks. Assumes \texttt{args} to be \textbf{a JavaScript array} of hook descriptors (same as described \hyperref[ref-hooks_config]{before}). Example event:
 
@@ -2688,7 +2786,7 @@ Example declaration:
 ]
 \end{minted}
 \subsubsection{\texttt{action.remove\_hooks}}
-\label{sec-8-3-7}
+\label{sec-9-3-7}
 
 Removes hooks from the Client worker. \texttt{args} is assumed to be \textbf{a JavaScript array} of event names which hooks should be removed. Example event:
 
@@ -2714,7 +2812,7 @@ Example declaration:
 ]
 \end{minted}
 \subsubsection{\texttt{action.start\_connectors}}
-\label{sec-8-3-8}
+\label{sec-9-3-8}
 
 Starts Hive Connector pools. Assumes \texttt{args} to be \textbf{a JSON object} representing name/Connector descriptor pairs (the same as described \hyperref[ref-connectors_config]{before}). Example event:
 
@@ -2754,7 +2852,7 @@ Example declaration:
 ]
 \end{minted}
 \subsubsection{\texttt{action.stop\_connectors}}
-\label{sec-8-3-9}
+\label{sec-9-3-9}
 
 Stops Hive Connector pools. Assumes \texttt{args} to be \textbf{a JavaScript array} of Connector pool names. Example event:
 
@@ -2781,12 +2879,12 @@ Example declaration:
 ]
 \end{minted}
 \subsection{Service Connectors}
-\label{sec-8-4}
+\label{sec-9-4}
 \label{ref-connectors}
 
 Currently available Hive Connector pool types and their arguments are described below:
 \subsubsection{\texttt{connector.redis}}
-\label{sec-8-4-1}
+\label{sec-9-4-1}
 
 The Redis database connector.
 
@@ -2805,7 +2903,7 @@ The Redis database connector.
 \end{itemize}
 \end{itemize}
 \subsubsection{\texttt{connector.http}}
-\label{sec-8-4-2}
+\label{sec-9-4-2}
 \label{ref-cp_connectors}
 
 A Hive Protocol compatible HTTP connector. Provides Hive Protocol interface over HTTP. All data is transfered in the bodies of the HTTP requests with no additional encapsulation or serialization.
@@ -2821,7 +2919,7 @@ A Hive Protocol compatible HTTP connector. Provides Hive Protocol interface over
 \end{itemize}
 \end{itemize}
 \subsubsection{\texttt{connector.tcp}}
-\label{sec-8-4-3}
+\label{sec-9-4-3}
 
 A Hive Protocol compatible TCP connector. Provides Hive Protocol interface over TCP using a pool of connection listeners and a simple data serialization subprotocol - all data sent to/received from a given endpoint are encoded as Socket.IO messages with the \textbf{message} opcode and are preceded by a short header consisting of a frame marker, a string representation of the message length and another frame marker:
 
@@ -2844,12 +2942,12 @@ A Hive Protocol compatible TCP connector. Provides Hive Protocol interface over 
 \end{itemize}
 \end{itemize}
 \subsection{State Managers}
-\label{sec-8-5}
+\label{sec-9-5}
 \label{ref-state_managers}
 
 This section lists and describes all available Hive Client State Managers.
 \subsubsection{\texttt{sm.local}}
-\label{sec-8-5-1}
+\label{sec-9-5-1}
 
 The Local State Manager \textbf{does not require any additional arguments}. It stores the Client workers state internally within the Client worker process, \textbf{decreasing access time} and \textbf{increasing memory use}.
 
@@ -2864,7 +2962,7 @@ Example Local State Manager descriptor:
 }
 \end{minted}
 \subsubsection{\texttt{sm.redis}}
-\label{sec-8-5-2}
+\label{sec-9-5-2}
 
 The Redis State Manager stores the Client workers state in a remote Redis database. Client workers' state is stored as a Redis hash map (accessed via \texttt{HGET} and \texttt{HSET}) with non-trivial objects serialized to JSON format (integers, strings and other simple values are stored as-is while JavaScript arrays and objects are serialized and stored as strings). The hash map is accessible under a key equal to the \textbf{Session ID} of the Client session. Additionally a Client Worker-side cacheing is employed to limit unnecessary Redis database requests. Arguments received in \texttt{args}:
 

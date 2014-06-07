@@ -12,11 +12,11 @@ main([]) ->
     io:format("Usage: ./test_config.erl config_file.json\n"),
     halt(1);
 
-main([Filename]) ->
+main([Plugins, Schema, Filename]) ->
     %%application:start(lager),
     hive_config:set(hive_config_file, list_to_binary(Filename)),
-    hive_config:set(hive_schema_dir, <<"etc/schema">>),
-    hive_config:set(hive_plugins_dir, <<"plugins">>),
+    hive_config:set(hive_schema_dir, list_to_binary(Schema)),
+    hive_config:set(hive_plugins_dir, list_to_binary(Plugins)),
     erlang:process_flag(trap_exit, true),
     case hive_env_sup:start_link() of
         {ok, _} ->

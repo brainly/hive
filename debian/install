@@ -1,0 +1,8 @@
+ebin/ /opt/hive
+deps/ /opt/hive
+etc/ /opt/hive
+priv/ /opt/hive
+plugins/ /opt/hive
+Makefile /opt/hive
+rebar /opt/hive
+rebar.config /opt/hive
