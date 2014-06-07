@@ -1,14 +1,14 @@
-* Chat Server
+* Distributed chat Server
 This example extends the simple chat to include Hive distribution and a Redis database for storing user data. Hive will be started as a cluster consisting of two nodes both of which will communicate with a Python backend. The Python backend requires very little changes (mostly to accomodate multiple API endpoints) and the JavaScript frontend is used as-is, the only change being Hive URL selection.
 
 * Hive Setup
 ** Cluster basics
-The biggest change is that we will run two Hive instances which will form a cluster. In order to achieve tat we'll need to create two separate configuration files, one for each node:
+The biggest change is that we will run two Hive instances which will form a cluster. In order to achieve that we'll need to create two separate configuration files, one for each node:
 
 - =examples/distributed-chat/config/node1.json=, and
 - =examples/distributed-chat/config/node2.json=
 
-Both of these will share some settings. For example, the client configuration (found in =examples/distributed-chat/config/clients.json=), the service connectors configuration (found in =examples/distributed-chat/config/connectors.json=) and the publisher-subscriber channel configuration (found in =examples/distributed-chat/config/pubsub.json=) will be shared since these are cluster-wide sittenigs.
+Both of these will share some settings. For example, the client configuration (found in =examples/distributed-chat/config/clients.json=), the service connectors configuration (found in =examples/distributed-chat/config/connectors.json=) and the publisher-subscriber channel configuration (found in =examples/distributed-chat/config/pubsub.json=) will be shared since these are cluster-wide settings.
 
 ** General Hive settings
 General Hive settings are mostly unchanged, but we'll add a few lines for the cluster set up:
@@ -88,12 +88,12 @@ We setup the database host, port and various other Service Connector related set
   }
 #+end_src
 
-We do so by configuring the =clients.state= part. We want to use a Redis State Manager that uses our =database= connector to store user data. We also initialize the state with a =nick= defaulting to =null= and a list of =rooms= the user is currently on defaulting to an empty array. We'll use these in our Python backend.
+We do so by configuring the =clients.state= part. We want to use a Redis State Manager that uses our =database= connector to store user data. We also initialize the state with a =nick=, defaulting to =null=, and a list of =rooms= the user is currently on, defaulting to an empty array. We'll use these in our Python backend.
 ** Setting up the backend
 The backend connector stays the same and is shared between all the cluster nodes, but we could as easily run two separate backends - one for each of them. Hive is fairly flexible in this regard.
 
 * The backend
-The backend requires very little changes, let's start of with multiple API backends.
+The backend requires very little changes, let's start off with multiple API backends:
 
 #+begin_src python
   class BackendHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -104,6 +104,8 @@ The backend requires very little changes, let's start of with multiple API backe
 These will be used in a round-robin fashion - if the first API call fails (meaning that one of the Hive nodes is down) the backend will use the second one.
 
 ** Helper functions
+We need to accomodate the new API call scheme in the =_request()= helper function:
+
 #+begin_src python
     def _request(self, endpoint, method, data):
         for node in self.API:
@@ -132,3 +134,5 @@ Running the chat server is very straightforward:
 - run the second Hive node by invoking =make run CONFIG=examples/distributed-chat/config/node2.json=,
 
 Hives will form a cluster and users connecting to either of the nodes will receive events comming from both of them.
+
+Have fun chatting!

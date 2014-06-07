@@ -25,7 +25,7 @@ We'll start with a short discussion of the general server setup:
 #+end_src
 
 First, we set up the number of requests acceptors and configure a listening port - Hive will listen on port =8080=. We also set =null= and =ws://localhost= as accepted origins, as we're going to run the client locally and spawn some automated bots later (stay tuned).
-We also limit the total number of Erlang processes and available clients slots, and set up various other things described in detail in the documentation.
+We also limit the total number of Erlang processes and available client slots, and set up various other things described in detail in the documentation.
 
 ** Setting up the backend
 While we're defining Service Connector pools, we might as well throw the backend connector in here:
@@ -66,7 +66,7 @@ And now, the meat of the chat server, the event handlers. Starting with backend 
   }
 #+end_src
 
-These will cause Hive to send a Socket.IO event reply whenever a =reply= backend event is received and update its internal state whenever a =store= backend event is received. Now, all we have need to do is make Hive actually talk to the backend. We do this by setting up the hooks that will run on certain client events:
+These will cause Hive to send a Socket.IO event reply whenever a =reply= backend event is received and update its internal state whenever a =store= backend event is received. Now, all we need to do is make Hive actually talk to the backend. We do this by setting up the hooks that will run on certain client events:
 
 #+begin_src javascript
   "hooks" : {
@@ -141,7 +141,7 @@ Woah, that was a mouthful.
 
 We start with making sure that the user cleans up after himself. We want him to leave all the chat rooms and do a cleanup when he disconnects from the server. We do this by using the Hive Protocol Hook - each time a user disconnects it'll asynchronously post (=hp.put=) some user data to =/leave= and =/cleanup= backend endpoints.
 
-Next, we set up an authorization hook, so we have a little control over who connects to our chat servers. Notice that this time we used a synchronous post (=hp.post=) meaning we expect to receive a backend event as a reply. In this case, the event will instruct us whether the authorization succeeded or not.
+Next, we set up an authorization hook, so we have a little control over who connects to our chat servers. Notice that this time we used a synchronous post (=hp.post=) meaning we expect to receive a backend event as a reply. In this case, the event will instruct us whether the authorization attempt succeeded or not.
 
 Lastly, we set up the room management hooks: joining a room, publishing a message and leaving a room. We notify the backend on each of these events so it can act accordingly and, for example, propagate presence updates to the chat rooms using Hive's API.
 
@@ -365,7 +365,7 @@ Throughout the backend code we've used several helper functions such sa =_leave=
         return
 #+end_src
 * The frontend
-The JavaScript frontend isn't really that much interesting, it's just a bunch of chatbox building and button =onclick='ing. If you insisnt on checking it out, please go consult the source.
+The JavaScript frontend isn't really that much interesting, it's just a bunch of chatbox building and button =onclick='ing. If you insist on checking it out, please consult the source.
 
 * Let's chat!
 ** Running the chat server
@@ -386,7 +386,7 @@ NOW click the button to join the chat server. If everything went well you'll be 
 Now you're free to chat, create new chat rooms and leave existing ones. Have fun!
 
 ** BOTS, BOTS EVERYWHERE!
-Just for giggles, the =examples/chat/tests= directory contains a test scenario for a tool we wrote, called [[https://github.com/brainly/flood][Flood]]. Once you run it you'll see 10 bots appearing in your chat room. Hijinks ensue!
+Just for giggles, the =examples/chat/tests= directory contains a test scenario for a tool we wrote, called [[https://github.com/brainly/flood][Flood]]. Once you run it you'll see 10 bots appear in your chat room. Hijinks ensue!
 
 #+begin_example
   *** bot_2 joined room main...
