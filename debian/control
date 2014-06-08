@@ -8,4 +8,4 @@ Standards-Version: 3.8.4
 Package: brainly-hive
 Architecture: all
 Depends: ${shlibs:Depends}, ${misc:Depends}, esl-erlang (>= 1:16.b)
-Description: Hive v0.5.0
+Description: Hive v0.6.0

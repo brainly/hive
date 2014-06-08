@@ -1,3 +1,9 @@
+brainly-hive (0.6.0) unstable; urgency=low
+
+  * This release brings a debian package builder.
+
+ -- Kajetan Rzepecki <kajetan.rzepecki+github@gmail.com>  Sat Jun 7 18:29:15 2014 +0200
+
 brainly-hive (0.5.0) unstable; urgency=low
 
   * This release adds clusterization capabilities to Hive.
