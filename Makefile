@@ -9,6 +9,7 @@ SCHEMA=etc/schema/
 CONFIG=etc/hive.json
 
 TARGET=binary
+BUILD=""
 
 all: build
 
@@ -40,11 +41,11 @@ deb-package: deb-changelog deb-control deb-install
 
 deb-changelog:
 	@touch debian/changelog
-	@sh priv/make_changelog.sh > debian/changelog
+	@sh priv/make_changelog.sh $(BUILD) > debian/changelog
 
 deb-control:
 	@touch debian/control
-	@sh priv/make_control.sh > debian/control
+	@sh priv/make_control.sh $(BUILD) > debian/control
 
 deb-install:
 	@touch debian/install
