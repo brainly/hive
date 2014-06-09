@@ -1,4 +1,3 @@
-
 # /
 /log
 /*.dump
@@ -9,4 +8,7 @@
 *.blg
 debian/hive.debhelper.log
 debian/hive/
+debian/install
+debian/changelog
+debian/control
 lager.config
