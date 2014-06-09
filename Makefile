@@ -35,7 +35,7 @@ test-config:
 rev:
 	@sh priv/make_revision_tex.sh docs/revision.tex
 
-deb-package: deb-changelog deb-control
+deb-package: deb-changelog deb-control deb-install
 	@debuild $(TARGET)
 
 deb-changelog:
@@ -45,6 +45,10 @@ deb-changelog:
 deb-control:
 	@touch debian/control
 	@sh priv/make_control.sh > debian/control
+
+deb-install:
+	@touch debian/install
+	@sh priv/make_install.sh > debian/install
 
 .PHONY: clean
 clean:
