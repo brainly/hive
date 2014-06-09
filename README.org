@@ -1,4 +1,6 @@
 * Hive
+[[https://travis-ci.org/brainly/hive][https://travis-ci.org/brainly/hive.svg]]
+
 *Hive* is a scalable, *Socket.IO* based, Comet/PUSH application server written in *Erlang* that allows you kick it up a notch by introducing various real-time Comet services to your WebApps. It supports lot's of *plugins* and can easily communicate with, and *seamlessly integrate into existing backends* using HTTP or TCP!
 
 * Examples
