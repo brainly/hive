@@ -115,6 +115,7 @@ resubscribe(Privilege, Event, Trigger, State) ->
                                   lager:debug("Hive Pub-Sub Hook encountered an error: ~p", [Error]),
                                   {error, Error, State}
             end;
+
         {error, Error} ->
             inc(?HOOK_ERRORS),
             inc(?HOOK_EVENT_ERRORS, Event),
@@ -124,10 +125,10 @@ resubscribe(Privilege, Event, Trigger, State) ->
 
 %% Internal functions:
 make_cids(Cid) when is_binary(Cid) ->
-   [Cid];
+    [Cid];
 
 make_cids(Cid) when is_integer(Cid) ->
-   [integer_to_binary(Cid)];
+    [integer_to_binary(Cid)];
 
 make_cids([]) ->
     [];
@@ -166,9 +167,9 @@ make_cids(Prefix, [Id | Ids]) ->
     lists:flatten([make_cids(Prefix, Id) | make_cids(Prefix, Ids)]);
 
 make_cids(Prefix, Id) when is_integer(Id) ->
-   IdBin = integer_to_binary(Id),
-   [<<Prefix/binary, ".", IdBin/binary>>];
+    IdBin = integer_to_binary(Id),
+    [<<Prefix/binary, ".", IdBin/binary>>];
 
 make_cids(Prefix, Id) when is_binary(Id) ->
-   [<<Prefix/binary, ".", Id/binary>>].
+    [<<Prefix/binary, ".", Id/binary>>].
 
