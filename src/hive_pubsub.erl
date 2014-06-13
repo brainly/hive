@@ -148,9 +148,9 @@ handle_call({leave, Privilege, Pid, Cids, From}, _From, State) ->
         ok ->
             {reply, reply(From,
                           channel_fold(fun(Cid) ->
-                                               %% When there are no channels with a given Cid:
-                                               {error, {unknown_channel_id, err_log("Tried unsubscribing an unknown channel: ~s",
-                                                                                    [Cid])}}
+                                               %% When there are no channels with a given Cid there's nothing to do.
+                                               dbg_log("Tried unsubscribing an unknown channel: ~s", [Cid]),
+                                               ok
                                        end,
                                        fun(Channel) ->
                                                %% When there are some channels with a given Cid:
@@ -167,9 +167,9 @@ handle_call({publish, Privilege, Cids, Events}, _From, State) ->
     case check_privilege(Privilege, Cids, State) of
         ok ->
             {reply, channel_fold(fun(Cid) ->
-                                         %% When there are some channels with a given Cid:
-                                         {error, {unknown_channel_id, err_log("Tried publishing to an unknown channel: ~s",
-                                                                              [Cid])}}
+                                         %% When there are no channels with a given Cid there's nothing to do.
+                                         dbg_log("Tried publishing to an unknown channel: ~s", [Cid]),
+                                         ok
                                  end,
                                  fun(Channel) ->
                                          %% When there are some channels with a given Cid:
@@ -428,6 +428,11 @@ trace({error, Error}) ->
 
 trace(Otherwise) ->
     Otherwise.
+
+dbg_log(Format, Values) ->
+    ErrorMsg = hive_error_utils:format(Format, Values),
+    lager:debug(ErrorMsg),
+    ErrorMsg.
 
 err_log(Format, Values) ->
     inc(?PUBSUB_ERRORS),

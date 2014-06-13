@@ -122,9 +122,8 @@ get_length(_) ->
 add_client(Pid, State) ->
     case gb_sets:is_member(Pid, State#state.clients) of
         true ->
-            {error, {already_subscribed, err_log("Tried adding a Client that is already subscribed to this channel: ~s.",
-                                                 [State#state.name],
-                                                 State)}};
+            %% NOTE Nothing to do, so we're good.
+            {ok, State};
 
         false ->
             ?inc(?PUBSUB_CHANNEL_SUBSCR),
@@ -148,9 +147,8 @@ remove_client(Pid, State, Size) ->
             end;
 
         false ->
-            {error, {not_subscribed, err_log("Tried removing a Client that is not subscribed to this channel: ~s",
-                                             [State#state.name],
-                                             State)}}
+            %% NOTE Nothing to do, so we're good.
+            {ok, State}
     end.
 
 channel_size(State) ->

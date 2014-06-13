@@ -104,30 +104,17 @@ resubscribe(Privilege, Event, Trigger, State) ->
     [CidDescr] = proplists:get_value(<<"args">>, ExternalEvent, []),
     DroppedCids = lists:map(fun ({Prefix, _Rest}) -> Prefix end, CidDescr),
     NewCids = make_cids(CidDescr),
-    JoinAnyway = fun() ->
-                         case hive_pubsub:join(Privilege, NewCids) of
-                             ok             -> {noreply, State};
-                             {error, Error} -> inc(?HOOK_ERRORS),
-                                               inc(?HOOK_EVENT_ERRORS, Event),
-                                               lager:debug("Hive Pub-Sub Hook encountered an error: ~p", [Error]),
-                                               {error, Error, State}
-                         end
-                 end,
     inc(?HOOK_PUBSUB_UNSUB),
     inc(?HOOK_EVENT_PUBSUB_UNSUB, Event),
     case hive_pubsub:leave(Privilege, DroppedCids) of
-        %% NOTE We want this to behave more like subscription than unsubscription,
-        %% NOTE so we're ignoring some of the errors.
         ok ->
-            JoinAnyway();
-
-        {error, {unknown_channel_id, _Reason}} ->
-            %% Channel doesn't exist yet.
-            JoinAnyway();
-
-        {error, {not_subscribed, _Reason}} ->
-            %% Client is not a member of a channel.
-            JoinAnyway();
+            case hive_pubsub:join(Privilege, NewCids) of
+                ok             -> {noreply, State};
+                {error, Error} -> inc(?HOOK_ERRORS),
+                                  inc(?HOOK_EVENT_ERRORS, Event),
+                                  lager:debug("Hive Pub-Sub Hook encountered an error: ~p", [Error]),
+                                  {error, Error, State}
+            end;
 
         {error, Error} ->
             inc(?HOOK_ERRORS),
