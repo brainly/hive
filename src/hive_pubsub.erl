@@ -104,8 +104,8 @@ unsubscribe(Sid, Cids, Privilege) ->
 handle_call({status, Cid}, _From, State) ->
     case get_channels(Cid, State#state.pub_channels) of
         [] ->
-            Error = {bad_channel_id, err_log("Tried accessing an unknown Hive Pub-Sub Channel: ~s",
-                                             [Cid])},
+            Error = {unknown_channel_id, err_log("Tried accessing an unknown Hive Pub-Sub Channel: ~s",
+                                                 [Cid])},
             {reply, {error, Error}, State};
 
         Channels ->
@@ -149,8 +149,8 @@ handle_call({leave, Privilege, Pid, Cids, From}, _From, State) ->
             {reply, reply(From,
                           channel_fold(fun(Cid) ->
                                                %% When there are no channels with a given Cid:
-                                               {error, {bad_channel_id, err_log("Tried unsubscribing an unknown channel: ~s",
-                                                                                [Cid])}}
+                                               {error, {unknown_channel_id, err_log("Tried unsubscribing an unknown channel: ~s",
+                                                                                    [Cid])}}
                                        end,
                                        fun(Channel) ->
                                                %% When there are some channels with a given Cid:
@@ -168,8 +168,8 @@ handle_call({publish, Privilege, Cids, Events}, _From, State) ->
         ok ->
             {reply, channel_fold(fun(Cid) ->
                                          %% When there are some channels with a given Cid:
-                                         {error, {bad_channel_id, err_log("Tried publishing to an unknown channel: ~s",
-                                                                          [Cid])}}
+                                         {error, {unknown_channel_id, err_log("Tried publishing to an unknown channel: ~s",
+                                                                              [Cid])}}
                                  end,
                                  fun(Channel) ->
                                          %% When there are some channels with a given Cid:
@@ -326,7 +326,7 @@ check_privilege(Privilege, Cid, State, FailIfNoChannels) ->
         [] ->
             case FailIfNoChannels of
                 fail_if_no_channels ->
-                    {error, {bad_channel_id, Cid}};
+                    {error, {unknown_channel_id, Cid}};
 
                 _ ->
                     PrivLevel = privilege_level(Privilege),
