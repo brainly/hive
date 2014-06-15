@@ -1,4 +1,4 @@
-% Created 2014-06-01 nie 21:46
+% Created 2014-06-15 nie 18:05
 \documentclass[a4paper]{article}
 \usepackage{fontspec}
 \usepackage{fixltx2e}
@@ -99,7 +99,7 @@ The libraries, listed belowe, are downloaded automatically by Rebar via \textbf{
 \section{Installation \& Running}
 \label{sec-2}
 
-The following section describes how to build run the Hive server.
+The following section describes how to build \& run the Hive server.
 \subsection{Obtaining Hive}
 \label{sec-2-1}
 
@@ -121,7 +121,7 @@ $ tree hive
   hive
   |-- docs                - Documentation files.
   |   '-- ...
-  |-- include             - Erlang source files.
+  |-- include             - Erlang header files.
   |   '-- ...
   |-- etc                 - Default configuration files.
   |   |-- schema          - Config validation schema files.
@@ -129,7 +129,7 @@ $ tree hive
   |-- Makefile            - Build script for make.
   |-- plugins             - Hive plugins directory.
   |   '-- ...
-  |-- priv                - Additional scripts etc directory.
+  |-- priv                - Additional scripts directory.
   |   '-- ...
   |-- rebar               - Rebar build tool.
   |-- rebar.config        - Rebar config (lists dependencies).
@@ -152,6 +152,20 @@ $ make
 
 \noindent
 Building Hive for the first time takes a considerable amount of time as Rebar downloads and compiles all of the dependencies, go grab a coffee! Other build script options:
+
+
+\begin{itemize}
+\item Building a Debian \texttt{.deb} package for easy distribution:
+\end{itemize}
+
+
+\begin{verbatim}
+$ make deb-package                                 - Builds using default options.
+$ make deb-package TARGET="target --and --options" - Used to pass additional build options.
+\end{verbatim}
+
+
+
 
 \begin{itemize}
 \item Cleaning up the repository - this will clean up all temporary and compiled files:
@@ -178,7 +192,7 @@ $ make unit-test
 
 
 \begin{itemize}
-\item Testing Hive configuration - this will test the Hive configuration file.
+\item Testing Hive configuration - this will test the Hive configuration file:
 \end{itemize}
 
 
@@ -214,7 +228,7 @@ $ make test-config CONFIG=path/to/config.json
 
 
 \noindent
-If the configuration file loads properly you can attempt to run Hive. For convenience there's a \textbf{make} rule for running Hive defined in the Makefile:
+If the configuration file loads properly you can attempt to run Hive. For convenience there's a \textbf{make} rule for that defined in the Makefile:
 
 
 \begin{verbatim}
@@ -293,16 +307,16 @@ hive_root_sup                        - Top-level Hive supervisor.
     |-- hive_connectors_sup          - Hive Connectors supervisor.
     |   |-- hive_connectors          - Hive Connectors Manager.
     |   '-- hive_connectors_pool_sup - Hive Connectors pool supervisor.
-    |        |-- connector1           - Various Connectors.
-    |        |    '-- ...             - Connector pool workers.
+    |        |-- connector1          - Various Connectors.
+    |        |    '-- ...            - Connector pool workers.
     |        '-- ...
     |-- hive_pubsub_sup              - Pub-Sub supervisor.
     |   |-- hive_pubsub_channel_sup  - Pub-Sub channel supervisor.
-    |   |   '-- ...                   - Various Pub-Sub channels.
+    |   |   '-- ...                  - Various Pub-Sub channels.
     |   '-- hive_pubsub              - Pub-Sub manager.
     |-- hive_router_sup              - Router supervisor.
     |   |-- hive_client_sup          - Clients supervisor.
-    |   |   '-- ...                   - Client-related processes.
+    |   |   '-- ...                  - Client-related processes.
     |   '-- hive_router              - Hive Router.
     '-- hive_web_sup                 - Hive Server & Monitor supervisor.
         |-- hive_api                 - The main Hive API Server entry point.
@@ -370,10 +384,11 @@ $ tree hive
   |   |-- hive_pubsub*       - Hive Pub-Sub related code.
   |   |-- hive_router*       - Hive Router related code.
   |   |-- hive_config*       - Hive Config related code.
+  |   |-- hive_cluster*      - Hive Cluster Manager related code.
   |   |-- hive_api*          - Hive RESTful API related code.
   |   |-- hive_*_sup*        - Various Hive supervisors.
   |   '-- ...
-  '-- test                    - Hive unit-tests.
+  '-- test                   - Hive unit-tests.
       '-- ...
 \end{verbatim}
 
@@ -476,7 +491,7 @@ null, "null", "*.*", "http://zadane.pl"
 
 \begin{itemize}
 \item \texttt{hive.graceful\_termination\_timeout} - the time (\textbf{in milliseconds}) after which Client Workers will be forced to terminate on server termination.
-\item \texttt{hive.max\_client\_slots} - the maximal number of clients that can be connected to Hive. It has to be \textbf{a positive integer},
+\item \texttt{hive.max\_client\_slots} - the maximal number of clients that can be connected to Hive. It has to be \textbf{a positive integer}.
 \end{itemize}
 
 \noindent
@@ -485,11 +500,11 @@ Additional, optional parameters:
 \label{ref-cluster-config}
 
 \begin{itemize}
-\item \texttt{hive.name} - a string representing the name of this Hive instance, defaults to =''hive''=. It is described in detail in a \hyperref[sec-8-2]{later section},
-\item \texttt{hive.cluster\_name} - a string representing the name of the Hive cluster formed by this Hive instance.
-\item \texttt{hive.cluster\_nodes} - a JavaScript array of cluster node names to which this instance will attept to connect. Every element of this array is a \texttt{hive.name} of a Hive instance,
-\item \texttt{hive.cluster\_port\_min} - an integer in range (0, 65535) representing the lower bound of the range of ports used to maintain Hive cluster connections,
-\item \texttt{hive.cluster\_port\_max} - an integer in range (0, 65535) representing the upper bound of the range of ports used to maintain Hive cluster connections,
+\item \texttt{hive.name} - a string representing the name of this Hive instance, defaults to unqualified ``hive''. It is described in detail in a \hyperref[sec-8-2]{later section}.
+\item \texttt{hive.cluster\_name} - a string representing the name of the Hive cluster formed by this Hive instance, defaults to ``hive$_{\mathrm{cluster}}$''.
+\item \texttt{hive.cluster\_nodes} - a JavaScript array of node names to which this instance will attept to connect. Every element of this array should be a fully qualified \texttt{hive.name} of another Hive instance.
+\item \texttt{hive.cluster\_port\_min} - an integer in range (0, 65535) representing the lower bound of the range of ports used to maintain Hive cluster connections.
+\item \texttt{hive.cluster\_port\_max} - an integer in range (0, 65535) representing the upper bound of the range of ports used to maintain Hive cluster connections.
 \item \texttt{hive.direct\_websocket} - \textbf{a boolean} flag determining whether WebSocket-based clients should skip the Hive Router in order to speed up the client-server communication. Skipping the router involves a trade off in that the router won't be able to manage clients communication (so no Socket.IO event related router logs, possible message counts inconsistencies, etc).
 \item \texttt{hive.websocket\_ping\_timeout} - the timeout (\textbf{in milliseconds}) used by the  WebSocket connection handlers to determine whether they are still active; if there is no pong message received from the client for this amount of time, its Client worker will be terminated. It has to be \textbf{a positive integer}.
 \item \texttt{hive.max\_processes} - the maximal number of processes that can exist in the Erlang VM. It has to be \textbf{a positive integer}. Keep in mind that the actual maximal number of processes might be higher (courtesy of the Erlang VM).
@@ -686,7 +701,7 @@ Required parameters:
 \begin{itemize}
 \item \texttt{pubsub.channels} - \textbf{a JSON object} containing various Hive Pub-Sub channel definitions on \textbf{a per-prefix} basis, that is, each field of the JSON object names a Pub-Sub channel prefix which might later generate concrete Pub-Sub channels. Each \textbf{channel descriptor} has to be \textbf{a JSON object} that defines several fields:
 \begin{itemize}
-\item \texttt{timeout} - the time (\textbf{in milliseconds}) after which the channel will cease to exist if there are no more Client workers subscribed to it. It has to be \textbf{a non-negative integer}. A timeout of \textbf{0 means infinity (bviously)} - a permanent channel that never ceases to exist.
+\item \texttt{timeout} - the time (\textbf{in milliseconds}) after which the channel will cease to exist if there are no more Client workers subscribed to it. It has to be \textbf{a non-negative integer}. A timeout of \textbf{0 means infinity (obviously)} - a permanent channel that never ceases to exist.
 \item \texttt{privilege} - the access type of a channel, specifies the privilege level required to operate (subscribe or unsubscribe) on a channel. It has to be \textbf{a string}. Accepted values:
 \end{itemize}
 \end{itemize}
@@ -879,7 +894,7 @@ For convenience each configuration section can be stored in its own, separate fi
 \section{Monitoring \& Statistics}
 \label{sec-4}
 
-This section describes the monitoring facilities of the Hive server. Statistics gathering is performed by changing values of various in-memory counters during Hive run-time, using \hyperref[ref-folsom]{Folsom} external library. All counters are represented by \textbf{non-negative integers}, and each of them corresponds to a specific metric of the Hive server.
+This section describes the monitoring facilities of the Hive server. Statistics gathering is performed by changing values of various in-memory counters during Hive run-time, using \hyperref[ref-folsom]{Folsom} external library. Most of the counters are represented by \textbf{non-negative integers}, and each of them corresponds to a specific metric of the Hive server.
 \subsection{Statistics structure}
 \label{sec-4-1}
 \label{ref-statistics-structure}
@@ -1017,7 +1032,7 @@ This subsection describes the \textbf{hive.cluster} portion of the Hive statisti
 
 
 \begin{itemize}
-\item \texttt{hive.cluster.nodes} - a JavaScript array of strings naming the connected cluster nodes,
+\item \texttt{hive.cluster.nodes} - a JavaScript array of strings listing other connected Hive nodes,
 \item \texttt{hive.cluster.size} - the number of nodes currently connected to the cluster,
 \item \texttt{hive.cluster.calls} - the total number of cluster wide, synchronous requests performed by this nodes Cluster Manager,
 \item \texttt{hive.cluster.casts} - the total number of cluster wide, asynchronous requests performed by this nodes Cluster Manager,
@@ -1067,7 +1082,7 @@ This subsection describes the \textbf{clients.events} portion of the Hive statis
 \subsubsection{\texttt{clients.state\_mgr}}
 \label{sec-4-2-8}
 
-This subsection describes the \textbf{clients.state$_{\mathrm{mgr}}$} portion of the Hive statistics. Metrics in this subsection correspond to various Client State Manager quantities.
+This subsection describes the \textbf{clients.state\_mgr} portion of the Hive statistics. Metrics in this subsection correspond to various Client State Manager quantities.
 
 
 \begin{itemize}
@@ -1456,13 +1471,13 @@ Errors are logged at the place of their origin and additionally at each \emph{la
 
 
 \begin{verbatim}
-14:45:32.213 [warning] Tried unsubscribing an unknown channel: foo.bar.baz
+14:45:32.213 [warning] Tried accessing an unknown Hive Pub-Sub channel: foo.bar.baz
 14:45:32.213 [debug] Hive Pub-Sub Hook encountered an error:
-                     {bad_channel_id,<<"Tried unsubscribing an unknown channel: foo.bar.baz">>}
+                     {unknown_channel_id,<<"Tried accessing an unknown Hive Pub-Sub channel: foo.bar.baz">>}
 14:45:32.213 [debug] Hive Hooks Client encountered an error:
-                     {bad_channel_id,<<"Tried unsubscribing an unknown channel: foo.bar.baz">>}
+                     {unknown_channel_id,<<"Tried accessing an unknown Hive Pub-Sub channel: foo.bar.baz">>}
 14:45:32.213 [debug] Hive Client encountered an error:
-                     {bad_channel_id,<<"Tried unsubscribing an unknown channel: foo.bar.baz">>}
+                     {unknown_channel_id,<<"Tried accessing an unknown Hive Pub-Sub channel: foo.bar.baz">>}
 \end{verbatim}
 
 
@@ -1509,7 +1524,8 @@ This section lists and gives a short destription of various error codes used thr
 \item \texttt{router\_error} - Hive Router related error (most likely an unhandled Hive Router request).
 \item \texttt{bad\_session\_id} - tried accessing (via Hive Router) a nonexistent Session ID.
 \item \texttt{pubsub\_error} - Hive Pub-Sub related error (most likely an unhandled Hive Pub-Sub request).
-\item \texttt{bad\_channel\_id} - tried accessing (via Hive Pub-Sub) a nonexistent Channel ID.
+\item \texttt{bad\_channel\_id} - tried accessing a non-existent Hive Pub-Sub channel.
+\item \texttt{unknown\_channel\_id} - tried accessing (via Hive Pub-Sub) a nonexistent Channel ID.
 \item \texttt{access\_denied} - privilege level specified for a Hive Pub-Sub requests is insufficient to perform it.
 \item \texttt{pubsub\_channel\_error} - Hive Pub-Sub Channel related error (most likely an unhandled Hive Pub-Sub Channel request or lack of privileges).
 \item \texttt{client\_error} - Hive Client related error (most likely problems with Client initialization).
@@ -1554,8 +1570,8 @@ Example (pretty formatted) error responses:
 \begin{minted}[]{javascript}
 // Hive error response:
 {
-    "error" : "bad_channel_id",
-    "description" : "Tried unsubscribing an unknown channel: foo.bar.baz"
+    "error" : "unknown_channel_id",
+    "description" : "Tried accessing an unknown Hive Pub-Sub channel: foo.bar.baz"
 }
 // Monitor error message:
 {
@@ -1956,6 +1972,8 @@ The \texttt{initial\_value} may be \textbf{any JSON value}, however since the St
 
 \noindent
 A list all available State Managers and their configuration parameters can be found \hyperref[sec-9-5]{here}.
+
+\pagebreak
 \subsection{Service Connectors}
 \label{sec-7-2}
 
@@ -1973,6 +1991,8 @@ The Client worker/Connector pool interaction is summarized on the following diag
 \begin{center}
 \includegraphics[scale=0.9]{./img/connectors.pdf}
 \end{center}
+
+\pagebreak
 \subsection{Pub-Sub Channels}
 \label{sec-7-3}
 \label{ref-pubsub}
@@ -2080,7 +2100,7 @@ The \textbf{Hive Protocol} is a set of communication rules and data formats that
 
 \begin{itemize}
 \item \textbf{Internal Events} \& \textbf{Client Metadata JSON} - described in detail \hyperref[sec-9-3]{here} and \hyperref[sec-7-1-4-2]{here}.
-\item \textbf{Hive Protocol hook} - described in detail \hyperref[sec-9-2-7]{here}.
+\item \textbf{Hive Protocol hook} - described in detail \hyperref[sec-9-2-8]{here}.
 \item \textbf{Hive API} - described in detail \hyperref[sec-6]{previously}.
 \end{itemize}
 
@@ -2231,7 +2251,6 @@ Currently, Hive nodes propagate several types of messages throughout the Hive Cl
 
 
 \begin{itemize}
-\item any External Events routed using the Hive Router,
 \item any Internal Events routed using the Hive Router,
 \item any Internal Events routed using the Hive Pub-Sub facility - but only on the Pub-Sub Manager level, each Pub-Sub Channel propagates messages to the Clients locally.
 \end{itemize}
@@ -2242,8 +2261,7 @@ Additionally, Hive nodes will broadcast some messages in order to maintain the C
 \begin{itemize}
 \item heartbeats,
 \item status updates,
-\item connection/disconnection notifications,
-\item etc.
+\item connection/disconnection notifications.
 \end{itemize}
 
 \pagebreak
@@ -2412,8 +2430,48 @@ Example triggering event (causes subscription to channels \texttt{foo.bar.baz}, 
     ]
 }
 \end{minted}
-\subsubsection{\texttt{pubsub.unsubscribe}}
+\subsubsection{\texttt{pubsub.resubscribe}}
 \label{sec-9-2-5}
+
+First attempts to leave all subscribed channels matching prefixes given in the triggering event and then resubscribes the Client to all specified, concrete channel IDs.
+
+
+\begin{itemize}
+\item metadata used - the Client workers internal state (Session ID, stored values, event that triggered the hook),
+\item arguments taken - \textbf{a string} representing the privilege level of this hook,
+\item modifications to the state - none,
+\item results in - does \textbf{not reply}, might stop the Client worker in case of a failure.
+\end{itemize}
+
+\noindent
+Example declaration:
+
+\begin{minted}[]{javascript}
+{ "hook" : "pubsub.resubscribe", "args" : "public" }
+\end{minted}
+
+
+
+
+\noindent
+Example triggering event (causes subscription to channels \texttt{foo.bar.baz}, \texttt{faz.baz} and \texttt{fez}):
+
+
+\begin{minted}[]{javascript}
+{
+    "name" : "resubscribe",
+    "args" : [
+        {
+            "prefxi_1" : {
+                "bar" : ["baz"]
+            },
+            "prefix_2" : "baz"
+        }
+    ]
+}
+\end{minted}
+\subsubsection{\texttt{pubsub.unsubscribe}}
+\label{sec-9-2-6}
 
 
 Unsubscribes a Client from the Hive Pub-Sub channels specified in arguments of the triggering event.
@@ -2455,7 +2513,7 @@ Example triggering event (causes unsubscription from channels \texttt{foo.bar.ba
 }
 \end{minted}
 \subsubsection{\texttt{pubsub.publish}}
-\label{sec-9-2-6}
+\label{sec-9-2-7}
 
 
 Publishes internal events passed as the arguments of the triggering event on a Hive Pub-Sub channels specified in arguments.
@@ -2498,7 +2556,7 @@ Example triggering event (causes the Client to publish events on Hive Pub-Sub ch
 }
 \end{minted}
 \subsubsection{\texttt{hp.get}}
-\label{sec-9-2-7}
+\label{sec-9-2-8}
 \label{ref-hive_protocol_hook}
 
 Performs a synchronous request, similar in semantics to an HTTP GET, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed \hyperref[ref-cp_connector]{here}).
@@ -2524,7 +2582,7 @@ Example declaration:
 }
 \end{minted}
 \subsubsection{\texttt{hp.put}}
-\label{sec-9-2-8}
+\label{sec-9-2-9}
 
 Performs an asynchronous request, similar in semantics to an HTTP PUT, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed \hyperref[ref-cp_connector]{here}).
 
@@ -2549,7 +2607,7 @@ Example declaration:
 }
 \end{minted}
 \subsubsection{\texttt{hp.post}}
-\label{sec-9-2-9}
+\label{sec-9-2-10}
 
 Performs a synchronous request, similar in semantics to an HTTP POST, to a given endpoint using a given Hive Protocol compatible Hive Connector pool (listed \hyperref[ref-cp_connector]{here}).
 
@@ -2648,10 +2706,10 @@ Example declaration:
     }
 ]
 \end{minted}
-\subsubsection{\texttt{action.send\_event}, \texttt{action.send\_message}, \texttt{action.send\_json}}
+\subsubsection{\texttt{action.send\_event}, \texttt{action.send\_message}, \texttt{action.send\_json}, \texttt{action.send\_ack}}
 \label{sec-9-3-3}
 
-Replies to the Client using event/message/json Socket.IO message types. \texttt{args} is \textbf{a JSON encoded reply}. Example event:
+Replies to the Client using event/message/json/ack Socket.IO message types. \texttt{args} is \textbf{a JSON encoded reply}. Example event:
 
 \begin{minted}[]{javascript}
 // message action:
