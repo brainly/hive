@@ -1447,6 +1447,12 @@ host:port/api/apikey/clients/dispatch/...
 ** RESTful API
 The following subsections describe various parts of the Hive API. Each section names an endpoint, consisting of =APISection=, =Action= and =Arguments=, used to perform the action, lists HTTP request methods it accepts and describes the structure of data required by the action.
 
+*** =/hive/version/=
+- Accepted HTTP methods:
+  + =GET= - returns a string representation of the server version.
+
+- Data format - none.
+
 *** =/hive/stop/=
 # <<<ref-api_stop>>>
 - Accepted HTTP methods:

@@ -9,6 +9,8 @@
 -import(hive_http_utils, [authorize/2, reply_no_log/2, reply_no_log/3]).
 -import(hive_error_utils, [make_json/2, format/2]).
 
+-include("hive_version.hrl").
+
 %% HTTP handler callbacks:
 init({tcp, http}, Request, _Options) ->
     inc(?API_REQUESTS),
@@ -32,6 +34,19 @@ terminate(_Reason, _Request, _State) ->
     ok.
 
 %% HTTP handler handlers:
+handle(Request, <<"version">>) ->
+    case cowboy_req:method(Request) of
+        {<<"GET">>, Req} ->
+            {ok, reply_no_log(?HIVE_VERSION, Req), done};
+
+        {Method, Req} ->
+            inc(?API_ERRORS),
+            inc(?API_HIVE_ERRORS),
+            ErrorMsg = format("Unsupported Hive API access method: ~s.", [Method]),
+            lager:warning(ErrorMsg),
+            Req2 = reply_no_log(405, make_json(bad_api_request, ErrorMsg), Req),
+            {ok, Req2, error}
+    end;
 
 handle(Request, <<"stop">>) ->
     case cowboy_req:method(Request) of

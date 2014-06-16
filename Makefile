@@ -9,10 +9,11 @@ SCHEMA=etc/schema/
 CONFIG=etc/hive.json
 
 TARGET=binary
+BUILD=""
 
 all: build
 
-build:
+build: version
 	@$(REBAR) get-deps compile
 
 run:
@@ -32,19 +33,21 @@ unit-test:
 test-config:
 	@escript priv/test_config.erl $(PLUGINS) $(SCHEMA) $(CONFIG)
 
-rev:
-	@sh priv/make_revision_tex.sh docs/revision.tex
+version:
+	@touch docs/revision.tex
+	@touch include/hive_version.hrl
+	@sh priv/make_version_files.sh docs/revision.tex include/hive_version.hrl
 
 deb-package: deb-changelog deb-control deb-install
 	@debuild $(TARGET)
 
 deb-changelog:
 	@touch debian/changelog
-	@sh priv/make_changelog.sh > debian/changelog
+	@sh priv/make_changelog.sh $(BUILD) > debian/changelog
 
 deb-control:
 	@touch debian/control
-	@sh priv/make_control.sh > debian/control
+	@sh priv/make_control.sh $(BUILD) > debian/control
 
 deb-install:
 	@touch debian/install

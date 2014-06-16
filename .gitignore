@@ -6,9 +6,12 @@
 /.eunit
 *.bbl
 *.blg
-debian/hive.debhelper.log
-debian/hive/
+debian/brainly-hive.*
+debian/brainly-hive/
+debian/files
 debian/install
 debian/changelog
 debian/control
 lager.config
+docs/revision.tex
+include/hive_version.hrl
