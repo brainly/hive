@@ -74,7 +74,7 @@ The libraries, listed belowe, are downloaded automatically by Rebar via *git*, s
 
 #+latex: \pagebreak
 * Installation & Running
-The following section describes how to build run the Hive server.
+The following section describes how to build & run the Hive server.
 
 ** Obtaining Hive
 Use *git* to clone the repository:
@@ -91,7 +91,7 @@ $ tree hive
   hive
   |-- docs                - Documentation files.
   |   '-- ...
-  |-- include             - Erlang source files.
+  |-- include             - Erlang header files.
   |   '-- ...
   |-- etc                 - Default configuration files.
   |   |-- schema          - Config validation schema files.
@@ -99,7 +99,7 @@ $ tree hive
   |-- Makefile            - Build script for make.
   |-- plugins             - Hive plugins directory.
   |   '-- ...
-  |-- priv                - Additional scripts etc directory.
+  |-- priv                - Additional scripts directory.
   |   '-- ...
   |-- rebar               - Rebar build tool.
   |-- rebar.config        - Rebar config (lists dependencies).
@@ -118,6 +118,14 @@ $ make
 
 #+latex: \noindent
 Building Hive for the first time takes a considerable amount of time as Rebar downloads and compiles all of the dependencies, go grab a coffee! Other build script options:
+
+- Building a Debian =.deb= package for easy distribution:
+
+#+begin_example
+$ make deb-package                                 - Builds using default options.
+$ make deb-package TARGET="target --and --options" - Used to pass additional build options.
+#+end_example
+
 - Cleaning up the repository - this will clean up all temporary and compiled files:
 
 #+begin_example
@@ -130,7 +138,7 @@ $ make clean
 $ make unit-test
 #+end_example
 
-- Testing Hive configuration - this will test the Hive configuration file.
+- Testing Hive configuration - this will test the Hive configuration file:
 
 #+begin_example
 $ make test-config                            - Tests the default configuration file.
@@ -154,7 +162,7 @@ $ make test-config CONFIG=path/to/config.json
 #+end_example
 
 #+latex: \noindent
-If the configuration file loads properly you can attempt to run Hive. For convenience there's a *make* rule for running Hive defined in the Makefile:
+If the configuration file loads properly you can attempt to run Hive. For convenience there's a *make* rule for that defined in the Makefile:
 
 #+begin_example
 $ make run CONFIG=path/to/config.json
@@ -226,16 +234,16 @@ hive_root_sup                        - Top-level Hive supervisor.
     |-- hive_connectors_sup          - Hive Connectors supervisor.
     |   |-- hive_connectors          - Hive Connectors Manager.
     |   '-- hive_connectors_pool_sup - Hive Connectors pool supervisor.
-    |        |-- connector1           - Various Connectors.
-    |        |    '-- ...             - Connector pool workers.
+    |        |-- connector1          - Various Connectors.
+    |        |    '-- ...            - Connector pool workers.
     |        '-- ...
     |-- hive_pubsub_sup              - Pub-Sub supervisor.
     |   |-- hive_pubsub_channel_sup  - Pub-Sub channel supervisor.
-    |   |   '-- ...                   - Various Pub-Sub channels.
+    |   |   '-- ...                  - Various Pub-Sub channels.
     |   '-- hive_pubsub              - Pub-Sub manager.
     |-- hive_router_sup              - Router supervisor.
     |   |-- hive_client_sup          - Clients supervisor.
-    |   |   '-- ...                   - Client-related processes.
+    |   |   '-- ...                  - Client-related processes.
     |   '-- hive_router              - Hive Router.
     '-- hive_web_sup                 - Hive Server & Monitor supervisor.
         |-- hive_api                 - The main Hive API Server entry point.
@@ -300,10 +308,11 @@ $ tree hive
   |   |-- hive_pubsub*       - Hive Pub-Sub related code.
   |   |-- hive_router*       - Hive Router related code.
   |   |-- hive_config*       - Hive Config related code.
+  |   |-- hive_cluster*      - Hive Cluster Manager related code.
   |   |-- hive_api*          - Hive RESTful API related code.
   |   |-- hive_*_sup*        - Various Hive supervisors.
   |   '-- ...
-  '-- test                    - Hive unit-tests.
+  '-- test                   - Hive unit-tests.
       '-- ...
 #+end_example
 
@@ -388,21 +397,21 @@ null, "null", "*.*", "http://zadane.pl"
 # <<<ref-graceful_config>>>
 - =hive.graceful_termination_timeout= - the time (*in milliseconds*) after which Client Workers will be forced to terminate on server termination.
 
-- =hive.max_client_slots= - the maximal number of clients that can be connected to Hive. It has to be *a positive integer*,
+- =hive.max_client_slots= - the maximal number of clients that can be connected to Hive. It has to be *a positive integer*.
 
 #+latex: \noindent
 Additional, optional parameters:
 
 # <<<ref-cluster-config>>>
-- =hive.name= - a string representing the name of this Hive instance, defaults to ="hive"=. It is described in detail in a [[ref-cluster-naming-convention][later section]],
+- =hive.name= - a string representing the name of this Hive instance, defaults to unqualified "hive". It is described in detail in a [[ref-cluster-naming-convention][later section]].
 
-- =hive.cluster_name= - a string representing the name of the Hive cluster formed by this Hive instance.
+- =hive.cluster_name= - a string representing the name of the Hive cluster formed by this Hive instance, defaults to "hive_cluster".
 
-- =hive.cluster_nodes= - a JavaScript array of cluster node names to which this instance will attept to connect. Every element of this array is a =hive.name= of a Hive instance,
+- =hive.cluster_nodes= - a JavaScript array of node names to which this instance will attept to connect. Every element of this array should be a fully qualified =hive.name= of another Hive instance.
 
-- =hive.cluster_port_min= - an integer in range (0, 65535) representing the lower bound of the range of ports used to maintain Hive cluster connections,
+- =hive.cluster_port_min= - an integer in range (0, 65535) representing the lower bound of the range of ports used to maintain Hive cluster connections.
 
-- =hive.cluster_port_max= - an integer in range (0, 65535) representing the upper bound of the range of ports used to maintain Hive cluster connections,
+- =hive.cluster_port_max= - an integer in range (0, 65535) representing the upper bound of the range of ports used to maintain Hive cluster connections.
 
 - =hive.direct_websocket= - *a boolean* flag determining whether WebSocket-based clients should skip the Hive Router in order to speed up the client-server communication. Skipping the router involves a trade off in that the router won't be able to manage clients communication (so no Socket.IO event related router logs, possible message counts inconsistencies, etc).
 
@@ -574,7 +583,7 @@ Required parameters:
 # <<<ref-pubsub_config>>>
 - =pubsub.channels= - *a JSON object* containing various Hive Pub-Sub channel definitions on *a per-prefix* basis, that is, each field of the JSON object names a Pub-Sub channel prefix which might later generate concrete Pub-Sub channels. Each *channel descriptor* has to be *a JSON object* that defines several fields:
 
-  + =timeout= - the time (*in milliseconds*) after which the channel will cease to exist if there are no more Client workers subscribed to it. It has to be *a non-negative integer*. A timeout of *0 means infinity (bviously)* - a permanent channel that never ceases to exist.
+  + =timeout= - the time (*in milliseconds*) after which the channel will cease to exist if there are no more Client workers subscribed to it. It has to be *a non-negative integer*. A timeout of *0 means infinity (obviously)* - a permanent channel that never ceases to exist.
 
   + =privilege= - the access type of a channel, specifies the privilege level required to operate (subscribe or unsubscribe) on a channel. It has to be *a string*. Accepted values:
 
@@ -726,7 +735,7 @@ For convenience each configuration section can be stored in its own, separate fi
 #+latex: \pagebreak
 
 * Monitoring & Statistics
-This section describes the monitoring facilities of the Hive server. Statistics gathering is performed by changing values of various in-memory counters during Hive run-time, using [[ref-folsom][Folsom]] external library. All counters are represented by *non-negative integers*, and each of them corresponds to a specific metric of the Hive server.
+This section describes the monitoring facilities of the Hive server. Statistics gathering is performed by changing values of various in-memory counters during Hive run-time, using [[ref-folsom][Folsom]] external library. Most of the counters are represented by *non-negative integers*, and each of them corresponds to a specific metric of the Hive server.
 
 ** Statistics structure
 # <<<ref-statistics-structure>>>
@@ -863,7 +872,7 @@ This subsection describes the *hive.router* portion of the Hive statistics. Metr
 *** =hive.cluster=
 This subsection describes the *hive.cluster* portion of the Hive statistics. Metrics found in this subsection measure the state of the Hive Cluster Manager of a node:
 
-- =hive.cluster.nodes= - a JavaScript array of strings naming the connected cluster nodes,
+- =hive.cluster.nodes= - a JavaScript array of strings listing other connected Hive nodes,
 
 - =hive.cluster.size= - the number of nodes currently connected to the cluster,
 
@@ -917,7 +926,7 @@ This subsection describes the *clients.events* portion of the Hive statistics. E
 - =clients.events.control_errors= - the total number of errors encountered when processing control events.
 
 *** =clients.state_mgr=
-This subsection describes the *clients.state_mgr* portion of the Hive statistics. Metrics in this subsection correspond to various Client State Manager quantities.
+This subsection describes the *clients.state\_mgr* portion of the Hive statistics. Metrics in this subsection correspond to various Client State Manager quantities.
 
 - =clients.state_mgr.requests= - the total number of State Manager requests.
 
@@ -1260,13 +1269,13 @@ This section gives various details concerting error messages that are generated 
 Errors are logged at the place of their origin and additionally at each /layer/ they pass through providing an error-trace useful for debugging. For example:
 
 #+begin_example
-14:45:32.213 [warning] Tried unsubscribing an unknown channel: foo.bar.baz
+14:45:32.213 [warning] Tried accessing an unknown Hive Pub-Sub channel: foo.bar.baz
 14:45:32.213 [debug] Hive Pub-Sub Hook encountered an error:
-                     {bad_channel_id,<<"Tried unsubscribing an unknown channel: foo.bar.baz">>}
+                     {unknown_channel_id,<<"Tried accessing an unknown Hive Pub-Sub channel: foo.bar.baz">>}
 14:45:32.213 [debug] Hive Hooks Client encountered an error:
-                     {bad_channel_id,<<"Tried unsubscribing an unknown channel: foo.bar.baz">>}
+                     {unknown_channel_id,<<"Tried accessing an unknown Hive Pub-Sub channel: foo.bar.baz">>}
 14:45:32.213 [debug] Hive Client encountered an error:
-                     {bad_channel_id,<<"Tried unsubscribing an unknown channel: foo.bar.baz">>}
+                     {unknown_channel_id,<<"Tried accessing an unknown Hive Pub-Sub channel: foo.bar.baz">>}
 #+end_example
 
 #+latex: \noindent
@@ -1321,7 +1330,9 @@ This section lists and gives a short destription of various error codes used thr
 
 - =pubsub_error= - Hive Pub-Sub related error (most likely an unhandled Hive Pub-Sub request).
 
-- =bad_channel_id= - tried accessing (via Hive Pub-Sub) a nonexistent Channel ID.
+- =bad_channel_id= - tried accessing a non-existent Hive Pub-Sub channel.
+
+- =unknown_channel_id= - tried accessing (via Hive Pub-Sub) a nonexistent Channel ID.
 
 - =access_denied= - privilege level specified for a Hive Pub-Sub requests is insufficient to perform it.
 
@@ -1378,8 +1389,8 @@ Example (pretty formatted) error responses:
 #+begin_src javascript
   // Hive error response:
   {
-      "error" : "bad_channel_id",
-      "description" : "Tried unsubscribing an unknown channel: foo.bar.baz"
+      "error" : "unknown_channel_id",
+      "description" : "Tried accessing an unknown Hive Pub-Sub channel: foo.bar.baz"
   }
   // Monitor error message:
   {
@@ -1688,6 +1699,7 @@ The =initial_value= may be *any JSON value*, however since the State Manager pro
 #+latex: \noindent
 A list all available State Managers and their configuration parameters can be found [[ref-state_managers][here]].
 
+#+latex: \pagebreak
 ** Service Connectors
 This section describes other details of the Hive Connectors facility. The Hive Connectors facility that provides access to various services, such as Redis databases or HTTP servers, uses several schemes of worker pool management. A pool consists of a supervisor and a number of *worker processes*, which are *rented* by various other Hive modules (for example Hive Protocol hooks). Technical details of pool management and worker renting were omitted from this user guide.
 
@@ -1704,6 +1716,7 @@ The Client worker/Connector pool interaction is summarized on the following diag
 [[file:./img/connectors.pdf]]
 #+end_center
 
+#+latex: \pagebreak
 ** Pub-Sub Channels
 # <<<ref-pubsub>>>
 This subsection and its subsections describe the Hive Pub-Sub facility.
@@ -1920,7 +1933,6 @@ Similarily, the Hive Cluster has to be given a name in order for each Hive insta
 ** Cluster-wide communication
 Currently, Hive nodes propagate several types of messages throughout the Hive Cluster:
 
-- any External Events routed using the Hive Router,
 - any Internal Events routed using the Hive Router,
 - any Internal Events routed using the Hive Pub-Sub facility - but only on the Pub-Sub Manager level, each Pub-Sub Channel propagates messages to the Clients locally.
 
@@ -1928,8 +1940,7 @@ Additionally, Hive nodes will broadcast some messages in order to maintain the C
 
 - heartbeats,
 - status updates,
-- connection/disconnection notifications,
-- etc.
+- connection/disconnection notifications.
 
 #+latex: \pagebreak
 * Hive Plugins
@@ -2065,6 +2076,40 @@ Example triggering event (causes subscription to channels =foo.bar.baz=, =faz.ba
               "faz" : "baz"
           },
           "fez"
+      ]
+  }
+#+end_src
+
+*** =pubsub.resubscribe=
+First attempts to leave all subscribed channels matching prefixes given in the triggering event and then resubscribes the Client to all specified, concrete channel IDs.
+
+  + metadata used - the Client workers internal state (Session ID, stored values, event that triggered the hook),
+
+  + arguments taken - *a string* representing the privilege level of this hook,
+
+  + modifications to the state - none,
+
+  + results in - does *not reply*, might stop the Client worker in case of a failure.
+
+#+latex: \noindent
+Example declaration:
+#+begin_src javascript
+{ "hook" : "pubsub.resubscribe", "args" : "public" }
+#+end_src
+
+#+latex: \noindent
+Example triggering event (causes subscription to channels =foo.bar.baz=, =faz.baz= and =fez=):
+
+#+begin_src javascript
+  {
+      "name" : "resubscribe",
+      "args" : [
+          {
+              "prefxi_1" : {
+                  "bar" : ["baz"]
+              },
+              "prefix_2" : "baz"
+          }
       ]
   }
 #+end_src
@@ -2270,8 +2315,8 @@ Example declaration:
   ]
 #+end_src
 
-*** =action.send_event=, =action.send_message=, =action.send_json=
-Replies to the Client using event/message/json Socket.IO message types. =args= is *a JSON encoded reply*. Example event:
+*** =action.send_event=, =action.send_message=, =action.send_json=, =action.send_ack=
+Replies to the Client using event/message/json/ack Socket.IO message types. =args= is *a JSON encoded reply*. Example event:
 #+begin_src javascript
 // message action:
 {
