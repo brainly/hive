@@ -12,3 +12,5 @@ debian/install
 debian/changelog
 debian/control
 lager.config
+docs/revision.tex
+include/hive_version.hrl

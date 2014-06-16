@@ -1,4 +1,4 @@
-% Created 2014-06-01 nie 21:46
+% Created 2014-06-16 pon 10:22
 \documentclass[a4paper]{article}
 \usepackage{fontspec}
 \usepackage{fixltx2e}
@@ -318,7 +318,7 @@ The Hive server employs a \textbf{graceful termination} strategy - after request
 The configuration parameters responsible for the graceful termination behaviour are described \hyperref[ref-graceful_config]{here}.
 
 \noindent
-The graceful termination RESTful API is described \hyperref[sec-6-1-1]{here}.
+The graceful termination RESTful API is described \hyperref[sec-6-1-2]{here}.
 \subsection{Repository layout reference}
 \label{sec-2-5}
 
@@ -1630,8 +1630,19 @@ host:port/api/apikey/clients/dispatch/...
 \label{sec-6-1}
 
 The following subsections describe various parts of the Hive API. Each section names an endpoint, consisting of \texttt{APISection}, \texttt{Action} and \texttt{Arguments}, used to perform the action, lists HTTP request methods it accepts and describes the structure of data required by the action.
-\subsubsection{\texttt{/hive/stop/}}
+\subsubsection{\texttt{/hive/version/}}
 \label{sec-6-1-1}
+
+
+\begin{itemize}
+\item Accepted HTTP methods:
+\begin{itemize}
+\item \texttt{GET} - returns a string representation of the server version.
+\end{itemize}
+\item Data format - none.
+\end{itemize}
+\subsubsection{\texttt{/hive/stop/}}
+\label{sec-6-1-2}
 \label{ref-api_stop}
 
 
@@ -1643,7 +1654,7 @@ The following subsections describe various parts of the Hive API. Each section n
 \item Data format - none.
 \end{itemize}
 \subsubsection{\texttt{/router/enable/}}
-\label{sec-6-1-2}
+\label{sec-6-1-3}
 
 
 \begin{itemize}
@@ -1654,7 +1665,7 @@ The following subsections describe various parts of the Hive API. Each section n
 \item Data format - none.
 \end{itemize}
 \subsubsection{\texttt{/router/disable/}}
-\label{sec-6-1-3}
+\label{sec-6-1-4}
 
 
 \begin{itemize}
@@ -1665,7 +1676,7 @@ The following subsections describe various parts of the Hive API. Each section n
 \item Data format - none.
 \end{itemize}
 \subsubsection{\texttt{/router/terminate/}}
-\label{sec-6-1-4}
+\label{sec-6-1-5}
 
 
 \begin{itemize}
@@ -1676,7 +1687,7 @@ The following subsections describe various parts of the Hive API. Each section n
 \item Data format - a string.
 \end{itemize}
 \subsubsection{\texttt{/clients/action/sid/}}
-\label{sec-6-1-5}
+\label{sec-6-1-6}
 
 
 
@@ -1688,7 +1699,7 @@ The following subsections describe various parts of the Hive API. Each section n
 \item Data format - an internal event, as described in \hyperref[sec-9-3]{a later section}.
 \end{itemize}
 \subsubsection{\texttt{/pubsub/action/cid/}}
-\label{sec-6-1-6}
+\label{sec-6-1-7}
 \label{ref-api_pubsub}
 
 
@@ -1701,7 +1712,7 @@ The following subsections describe various parts of the Hive API. Each section n
 \item Data format - an internal event, as described in \hyperref[sec-9-3]{a later section}.
 \end{itemize}
 \subsubsection{\texttt{/pubsub/publish/cid/}}
-\label{sec-6-1-7}
+\label{sec-6-1-8}
 
 
 
@@ -1713,7 +1724,7 @@ The following subsections describe various parts of the Hive API. Each section n
 \item Data format - an external event.
 \end{itemize}
 \subsubsection{\texttt{/pubsub/subscribe/id/}}
-\label{sec-6-1-8}
+\label{sec-6-1-9}
 
 
 
@@ -2002,12 +2013,12 @@ Channel (un)subscriptions can be managed in either of the following ways:
 
 
 \begin{itemize}
-\item via the Hive API Server - as described \hyperref[sec-6-1-6]{here},
+\item via the Hive API Server - as described \hyperref[sec-6-1-7]{here},
 \item via the Hive Pub-Sub Hook - as described \hyperref[sec-9-2-4]{here}.
 \end{itemize}
 
 \noindent
-Events can be published to the Hive Pub-Sub channel only via the Hive API Server (as described \hyperref[sec-6-1-6]{here}).
+Events can be published to the Hive Pub-Sub channel only via the Hive API Server (as described \hyperref[sec-6-1-7]{here}).
 \subsubsection{Pub-Sub summary}
 \label{sec-7-3-4}
 

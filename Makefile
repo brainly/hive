@@ -12,7 +12,7 @@ TARGET=binary
 
 all: build
 
-build:
+build: version
 	@$(REBAR) get-deps compile
 
 run:
@@ -32,8 +32,10 @@ unit-test:
 test-config:
 	@escript priv/test_config.erl $(PLUGINS) $(SCHEMA) $(CONFIG)
 
-rev:
-	@sh priv/make_revision_tex.sh docs/revision.tex
+version:
+	@touch docs/revision.tex
+	@touch include/hive_version.hrl
+	@sh priv/make_version_files.sh docs/revision.tex include/hive_version.hrl
 
 deb-package: deb-changelog deb-control deb-install
 	@debuild $(TARGET)
