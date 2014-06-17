@@ -5,13 +5,13 @@
 -export([start_link/1, init/1, terminate/2]).
 -export([handle_call/3, handle_cast/2, handle_info/2, code_change/3]).
 -export([publish/2, publish/3, subscribe/2, subscribe/3, unsubscribe/2, unsubscribe/3]).
--export([join/1, join/2, join/3, leave/1, leave/2, leave/3, status/1]).
+-export([join/1, join/2, join/3, leave/1, leave/2, leave/3, status/1, uptime/0]).
 
 -include("hive_events.hrl").
 -include("hive_monitor.hrl").
 -import(hive_monitor_utils, [init_counters/1, name/2, inc/1, dec/1, incby/2]).
 
--record(state, {supervisor, pub_channels, sub_channels}).
+-record(state, {supervisor, pub_channels, sub_channels, start_time}).
 
 -define(CHANNEL_SUP_SPECS(Mod), {Mod,
                                  {Mod, start_link, []},
@@ -39,8 +39,10 @@ init(PoolSup) ->
                   end,
                   hive_config:get(<<"pubsub.channels">>)),
     gen_server:cast(?MODULE, {start_channel_sup, PoolSup}),
+    StartTime = hive:uptime(),
     {ok, #state{pub_channels = ets:new(hive_pubsub_pub, [bag]),
-                sub_channels = ets:new(hive_pubsub_sub, [])}}.
+                sub_channels = ets:new(hive_pubsub_sub, []),
+                start_time = StartTime}}.
 
 terminate(Reason, State) ->
     lager:notice("Hive Pub-Sub terminated: ~n- State: ~p~n- Reason: ~p", [State, Reason]),
@@ -49,6 +51,10 @@ terminate(Reason, State) ->
     ok.
 
 %% External functions:
+uptime() ->
+    %% NOTE No need to increment PUBSUB_REQUESTS since this isn't really a request.
+    gen_server:call(?MODULE, uptime).
+
 status(Cid) ->
     inc(?PUBSUB_REQUESTS),
     inc(?PUBSUB_STATUS),
@@ -101,6 +107,9 @@ unsubscribe(Sid, Cids, Privilege) ->
     gen_server:call(?MODULE, {unsubscribe, Privilege, Sid, Cids}).
 
 %% Gen Server handlers:
+handle_call(uptime, _From, State) ->
+    {reply, hive:uptime() - State#state.start_time, State};
+
 handle_call({status, Cid}, _From, State) ->
     case get_channels(Cid, State#state.pub_channels) of
         [] ->

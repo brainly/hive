@@ -1083,6 +1083,8 @@ This subsection describes the *connectors.tcp.$(name)* part of the Hive statisti
 *** =pubsub=
 This subsection describes the *pubsub* portion of the Hive statistics. Metrics in this subsection measure various quantities related to the Hive Pub-Sub facility:
 
+- =pubsub.uptime= - the uptime (in *milliseconds*) of the Hive Pub-Sub Manager.
+
 - =pubsub.requests= - the total number of Hive Pub-Sub requests.
 
 - =pubsub.errors= - the total number of errors encountered by Hive Pub-Sub facility.

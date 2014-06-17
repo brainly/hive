@@ -137,6 +137,7 @@
 -define(CONN_TCP_RECV,           <<"connectors.tcp.$(name).recv">>).
 
 %% Hive Pub-Sub counters:
+-define(PUBSUB_UPTIME,           <<"pubsub.uptime">>).
 -define(PUBSUB_REQUESTS,         <<"pubsub.requests">>).
 -define(PUBSUB_ERRORS,           <<"pubsub.errors">>).
 -define(PUBSUB_CHANNELS,         <<"pubsub.total_channels">>).
@@ -185,4 +186,4 @@
                    ?CONNECTORS_RETURN, ?PUBSUB_REQUESTS, ?PUBSUB_ERRORS, ?PUBSUB_CHANNELS, ?PUBSUB_STATUS, ?PUBSUB_SUBSCRIBE,
                    ?PUBSUB_UNSUBSCRIBE, ?PUBSUB_JOIN, ?PUBSUB_LEAVE, ?PUBSUB_PUBLISH, ?PUBSUB_PUBLISHED, ?API_REQUESTS, ?API_ERRORS,
                    ?API_PUBSUB_ERRORS, ?API_CLIENTS_REQUESTS, ?API_HIVE_REQUESTS, ?API_HIVE_ERRORS, ?API_ROUTER_REQUESTS,
-                   ?API_ROUTER_ERRORS, ?CLUSTER_ERRORS, ?CLUSTER_SIZE, ?CLUSTER_CALLS, ?CLUSTER_CASTS]).
+                   ?API_ROUTER_ERRORS, ?CLUSTER_ERRORS, ?CLUSTER_SIZE, ?CLUSTER_CALLS, ?CLUSTER_CASTS, ?PUBSUB_UPTIME]).

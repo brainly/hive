@@ -72,6 +72,7 @@ update_gouges() ->
     hive_monitor:log(?CLUSTER_NODES, Nodes),
     hive_monitor:set(?ROUTER_UPTIME, hive_router:uptime()),
     hive_monitor:set(?ROUTER_QUEUE, hive_router:msg_queue()),
+    hive_monitor:set(?PUBSUB_UPTIME, hive_pubsub:uptime()),
     hive_monitor:set(?HIVE_UPTIME, hive:uptime()),
     hive_monitor:set(?TOTAL_PROCESSES, hive:processes()),
     Memory = hive:memory(),
