@@ -46,9 +46,14 @@ new(JSON) ->
     case hive_config:validate(<<"internal_event">>, JSON) of
         {ok, Event}    -> Action = proplists:get_value(<<"action">>, Event),
                           Args = proplists:get_value(<<"args">>, Event),
+                          Id = proplists:get_value(<<"trigger_id">>, Event, <<"">>),
                           %% NOTE We encode the args in order to avoid copying large structures
                           %% NOTE between Hive processes.
-                          {ok, #internal_event{action = Action, args = jsonx:encode(Args)}};
+                          {ok, #internal_event{
+                                  action = Action,
+                                  id = Id,
+                                  args = jsonx:encode(Args)
+                                 }};
         {error, Error} -> {error, Error}
     end.
 
