@@ -1,4 +1,4 @@
-% Created 2014-06-17 wto 10:31
+% Created 2014-06-17 wto 18:11
 \documentclass[a4paper]{article}
 \usepackage{fontspec}
 \usepackage{fixltx2e}
@@ -2655,12 +2655,16 @@ Internal events are used to control the Hive server. These events are generated 
 \begin{minted}[]{javascript}
 {
     "action" : "action_id",
+    "trigger_id" : "optional ACK ID"
     "args" : "action arguments"
 }
 \end{minted}
 
 
 
+
+\noindent
+The \texttt{trigger\_id} field is optional, and defaults to the empty string. It is interpreted differently by different actions.
 
 \noindent
 Currently supported actions are listed below.
@@ -2721,7 +2725,11 @@ Example declaration:
 \subsubsection{\texttt{action.send\_event}, \texttt{action.send\_message}, \texttt{action.send\_json}, \texttt{action.send\_ack}}
 \label{sec-9-3-3}
 
-Replies to the Client using event/message/json/ack Socket.IO message types. \texttt{args} is \textbf{a JSON encoded reply}. Example event:
+Replies to the Client using event/message/json/ack Socket.IO message types. \texttt{args} is \textbf{a JSON encoded reply}. The \texttt{trigger\_id} field is used as follows:  \texttt{action.send\_ack} will append it to the payload and send it to the client as an actual acknowledgement; other actions will send it via the ACK ID field of the Socket.IO message protocol.
+
+
+\noindent
+Example event:
 
 \begin{minted}[]{javascript}
 // message action:
@@ -2733,6 +2741,7 @@ Replies to the Client using event/message/json/ack Socket.IO message types. \tex
 // event action:
 {
     "action" : "event",
+    "trigger_id" : "23+",
     "args" : {
         "name" : "ping",
         "args" : ["pong"]
