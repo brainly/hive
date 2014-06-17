@@ -4,7 +4,7 @@
 -include_lib("eunit/include/eunit.hrl").
 -include("hive_socketio.hrl").
 
--import(hive_socketio_parser, [encode/1, encode_batch/1, split/1, decode/1, decode_batch/1, decode_maybe_batch/1]).
+-import(hive_socketio_parser, [encode/1, encode_batch/1, split/1, decode/1, decode_batch/1, decode_maybe_batch/1, msg_length/1]).
 
 -define(M, 16#fffd/utf8).
 
@@ -31,6 +31,11 @@ ecode_batch_test_() ->
      ?_assert(encode_batch([#sio_message{}, #sio_message{}]) =:= <<?M,"4", ?M, "8:::", ?M, "4", ?M, "8:::">>),
      ?_assert(encode_batch([#sio_message{type = disconnect}, #sio_message{type = connect}, #sio_message{type = heartbeat}]) =:=
                   <<?M,"4", ?M, "0:::", ?M,"4", ?M, "1:::", ?M, "4", ?M, "2:::">>)].
+
+msg_length_test_() ->
+    [?_assertEqual(4, element(1, msg_length(<<?M, "4", ?M, "0:::">>))),
+     ?_assertEqual(4, element(1, msg_length(<<?M, "4", ?M, "">>))),
+     ?_assertEqual(4, element(1, msg_length(<<?M, "4", ?M, "toooo long">>)))].
 
 split_test_() ->
     [?_assert(split(<<"">>) =:= []),

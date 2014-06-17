@@ -1,7 +1,7 @@
 -module(hive_socketio_parser).
 -author('kajetan.rzepecki@zadane.pl').
 
--export([decode_maybe_batch/1, encode_batch/1, decode_batch/1, encode/1, encode_id/1, decode/1]).
+-export([decode_maybe_batch/1, encode_batch/1, decode_batch/1, encode/1, encode_id/1, decode/1, msg_length/1]).
 
 -ifdef(TEST).
 -compile(export_all). %% NOTE For testing convenience.
@@ -60,13 +60,15 @@ split(Payload) ->
     Messages = split(Payload, []),
     lists:reverse(Messages).
 
-split(<<?FRAME_MARKER/utf8, Rest/binary>>, Accumulator) ->
+msg_length(<<?FRAME_MARKER/utf8, Rest/binary>>) ->
     [Len, Payload] = binary:split(Rest, <<?FRAME_MARKER/utf8>>),
     Length = list_to_integer(binary_to_list(Len)),
+    {Length, Payload}.
 
+split(Msg = <<?FRAME_MARKER/utf8, _Rest/binary>>, Accumulator) ->
+    {Length, Payload} = msg_length(Msg),
     Message = binary:part(Payload, 0, Length),
     Next = binary:part(Payload, Length, byte_size(Payload)-Length),
-
     split(Next, [Message | Accumulator]);
 
 split(<<>>, Accumulator) ->

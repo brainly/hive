@@ -118,7 +118,7 @@ recv(Endpoint, State) ->
     Socket = Data#data.socket,
     Timeout = State#state.max_reconnect_timeout,
     Transport = Data#data.transport,
-    case Transport:recv(Socket, 0, Timeout) of
+    case do_recv(Transport, Socket, Timeout) of
         {ok, Packet} ->
             [Message] = hive_socketio_parser:decode_batch(Packet),
             case Message of
@@ -128,7 +128,7 @@ recv(Endpoint, State) ->
                 Otherwise ->
                     ?inc(?CONN_TCP_ERRORS),
                     ErrorMsg = hive_error_utils:format("Hive TCP Connector's received an unexpected message: ~p",
-                                                        [Otherwise]),
+                                                       [Otherwise]),
                     lager:error(ErrorMsg),
                     {error, {tcp_error, ErrorMsg}}
 
@@ -142,15 +142,37 @@ recv(Endpoint, State) ->
             {error, {tcp_error, ErrorMsg}}
     end.
 
+do_recv(Transport, Socket, Timeout) ->
+    case Transport:recv(Socket, 0, Timeout) of
+        {ok, Packet} ->
+            {Len, Data} = hive_socketio_parser:msg_length(Packet),
+            case byte_size(Data) of
+                Len ->
+                    {ok, Packet};
+
+                L when L < Len ->
+                    case Transport:recv(Socket, Len - L, Timeout)of
+                        {ok, Rest}     -> {ok, <<Packet/binary, Rest/binary>>};
+                        {error, Error} -> {error, Error}
+                    end;
+
+                _Otherwise ->
+                    {error, <<"Wrong Socket.IO message length encoding.">>}
+            end;
+
+        {error, Error} ->
+            {error, Error}
+    end.
+
 send(Endpoint, Message, State) ->
     Data = State#state.data,
     Socket = Data#data.socket,
     Transport = Data#data.transport,
     Packet = hive_socketio_parser:encode_batch([#sio_message{
-                                                    type = message,
-                                                    endpoint = Endpoint,
-                                                    data = Message
-                                                   }]),
+                                                   type = message,
+                                                   endpoint = Endpoint,
+                                                   data = Message
+                                                  }]),
     %% NOTE This operation might timeout because we've set send_timeout on initialization.
     case Transport:send(Socket, Packet) of
         {error, Error} -> ?inc(?CONN_TCP_ERRORS),
