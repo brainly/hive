@@ -17,7 +17,7 @@ init({tcp, http}, Request, _Options) ->
             {ok, Request1, {dispatch, Prefix}};
 
         error ->
-            Msg = "Unauthorized Hive Monitor access attempt!",
+            Msg = <<"Unauthorized Hive Monitor access attempt!">>,
             lager:warning(Msg),
             Req = reply_no_log(401, make_json(bad_monitor_request, Msg), Request0),
             {shutdown, Req, error}
