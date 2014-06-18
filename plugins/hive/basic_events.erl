@@ -44,7 +44,11 @@ init_event(_Args) ->
 event(_Args, _Action, Trigger, State) ->
     Event = to_json(Trigger#internal_event.args),
     case hive_config:validate(<<"external_event">>, Event) of
-        {ok, _}        -> {reply, #sio_message{type = event, data = Trigger#internal_event.args}, State};
+        {ok, _}        -> {reply, #sio_message{
+                                     type = event,
+                                     id = hive_socketio_parser:decode_id(Trigger#internal_event.id),
+                                     data = Trigger#internal_event.args
+                                    }, State};
         {error, Error} -> {error, Error, State}
     end.
 
@@ -52,19 +56,29 @@ init_message(_Args) ->
     {ok, fun message/4}.
 
 message(_Args, _Action, Trigger, State) ->
-    {reply, #sio_message{type = message, data = Trigger#internal_event.args}, State}.
+    {reply, #sio_message{
+               type = message,
+               id = hive_socketio_parser:decode_id(Trigger#internal_event.id),
+               data = Trigger#internal_event.args
+              }, State}.
 
 init_ack(_Args) ->
     {ok, fun ack/4}.
 
 ack(_Args, _Action, Trigger, State) ->
-    {reply, #sio_message{type = ack, data = Trigger#internal_event.args}, State}.
+    Id = Trigger#internal_event.id,
+    Payload = Trigger#internal_event.args,
+    {reply, #sio_message{type = ack, data = <<Id/binary, Payload/binary>>}, State}.
 
 init_json(_Args) ->
     {ok, fun json/4}.
 
 json(_Args, _Action, Trigger, State) ->
-    {reply, #sio_message{type = json, data = Trigger#internal_event.args}, State}.
+    {reply, #sio_message{
+               type = json,
+               id = hive_socketio_parser:decode_id(Trigger#internal_event.id),
+               data = Trigger#internal_event.args
+              }, State}.
 
 init_store(_Args) ->
     {ok, fun store/4}.

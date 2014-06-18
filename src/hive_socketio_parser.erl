@@ -1,7 +1,7 @@
 -module(hive_socketio_parser).
 -author('kajetan.rzepecki@zadane.pl').
 
--export([decode_maybe_batch/1, encode_batch/1, decode_batch/1, encode/1, encode_id/1, decode/1, msg_length/1]).
+-export([decode_maybe_batch/1, encode_batch/1, decode_batch/1, encode/1, encode_id/1, decode/1, decode_id/1, msg_length/1]).
 
 -ifdef(TEST).
 -compile(export_all). %% NOTE For testing convenience.
@@ -36,6 +36,14 @@ encode_id({client, I}) -> Int = integer_to_binary(I),
                           <<Int/binary, "+">>;
 encode_id({server, I}) -> integer_to_binary(I);
 encode_id(undefined)   -> <<"">>.
+
+decode_id(Id) ->
+    try binary:last(Id) of
+        $+ -> {client, binary_to_integer(binary:part(Id, 0, byte_size(Id)-1))};
+        _  -> {server, binary_to_integer(Id)}
+    catch
+        error:_ -> undefined
+    end.
 
 indexof(Element, List) ->
     indexof(Element, List, 1). %% NOTE 1-based to keep Erlangs convention.
@@ -95,13 +103,7 @@ get_type(Message) ->
 %% I:E:D
 get_id(Message) ->
     [IdPart, Rest] = binary:split(Message, <<":">>),
-    try binary:last(IdPart) of
-        $+ -> Id = binary_to_integer(binary:part(IdPart, 0, byte_size(IdPart)-1)),
-              {{client, Id}, Rest};
-        _  -> {{server, binary_to_integer(IdPart)}, Rest}
-    catch
-        error:_ -> {undefined, Rest}
-    end.
+    {decode_id(IdPart), Rest}.
 
 %% E:D
 get_endpoint(Message) ->

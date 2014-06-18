@@ -4,7 +4,7 @@
 -include_lib("eunit/include/eunit.hrl").
 -include("hive_socketio.hrl").
 
--import(hive_socketio_parser, [encode/1, encode_batch/1, split/1, decode/1, decode_batch/1, decode_maybe_batch/1, msg_length/1]).
+-import(hive_socketio_parser, [encode/1, encode_batch/1, split/1, decode/1, decode_batch/1, decode_maybe_batch/1, msg_length/1, decode_id/1, encode_id/1]).
 
 -define(M, 16#fffd/utf8).
 
@@ -45,10 +45,24 @@ split_test_() ->
      ?_assert(split(<<?M, "5", ?M, "a", ?M ,"b">>) =:= [<<"a", ?M, "b">>]),
      ?_assert(split(encode_batch([#sio_message{}, #sio_message{}])) =:= [encode(#sio_message{}), encode(#sio_message{})])].
 
+encode_id_test_() ->
+    lists:map(fun({Expected, Id}) ->
+                      ?_assertEqual(Expected, encode_id(Id))
+              end,
+              [{<<"1+">>, {client, 1}},
+               {<<"23">>, {server, 23}},
+               {<<"">>, undefined}]).
+
+decode_id_test_() ->
+    lists:map(fun(Id) ->
+                      ?_assertEqual(Id, encode_id(decode_id(Id)))
+              end,
+              [<<"1+">>, <<"23">>, <<"">>]).
+
 decode_test_() ->
     lists:map(fun(T) ->
                       M = #sio_message{type = T},
-                      ?_assert(decode(encode(M)) =:= M)
+                      ?_assertEqual(M, decode(encode(M)))
               end,
               ?MESSAGE_TYPES)
         ++

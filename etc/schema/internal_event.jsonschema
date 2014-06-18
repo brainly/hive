@@ -8,6 +8,11 @@
 	"args" : {
 	    "type" : "any",
 	    "required" : true
+	},
+	"trigger_id" : {
+	    "type" : "string",
+	    "optional" : true,
+	    "default" : ""
 	}
     }
 }
