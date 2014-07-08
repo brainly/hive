@@ -1,5 +1,4 @@
 #!/bin/sh
-ulimit -n 80000
 exec erl +K true \
      $(escript priv/prep_hive.erl $@) \
     -noinput \
