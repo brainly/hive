@@ -8,23 +8,23 @@ usage()
 {
 cat <<EOF
 Usage:
-  ./run.sh [-h|--help] [-e|--env=prod] [-u|--ulimit=1024] [-p|--plugins=plugins/] [-c|--config=etc/hive.json] [-s|--schema=etc/schema/]
+  ./run.sh [-h] [-e prod] [-u 1024] [-p plugins/] [-c etc/hive.json] [-s etc/schema/]
 
 Options:
-  -h, --help                Display this help
-  -e, --env <dev|prod>      Application environment, defaults to "prod"
-  -u, --ulimit              Define limit of opened descriptors
-  -p, --plugins             Path to plugins directory
-  -c, --config              Path to configuration file
-  -s, --schema              Path to config file schemas
+  -h              Display this help
+  -e <dev|prod>   Application environment, defaults to "prod"
+  -u              Define limit of opened descriptors
+  -p              Path to plugins directory
+  -c              Path to configuration file
+  -s              Path to config file schemas
 
 Examples:
   * Start Hive in development environment
-    ./run.sh --env=dev
+    ./run.sh -e dev
   * Start Hive in production environment
     ./run.sh
   * Start Hive with other than default configurtion path 
-    ./run.sh -e dev --config=/etc/hive/config.json 
+    ./run.sh -e dev -c /etc/hive/config.json 
 
 EOF
 return 0
