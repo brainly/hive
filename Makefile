@@ -17,13 +17,10 @@ build: version
 	@$(REBAR) get-deps compile
 
 run:
-	@escript priv/test_config.erl $(PLUGINS) $(SCHEMA) $(CONFIG)
-	@sh priv/start.sh $(PLUGINS) $(SCHEMA) $(CONFIG)
+	@bash ./run -e prod -p $(PLUGINS) -s $(SCHEMA) -c $(CONFIG)
 
 run-dev:
-	@echo $(CONFIG)
-	@escript priv/test_config.erl $(PLUGINS) $(SCHEMA) $(CONFIG)
-	@sh priv/start-dev.sh $(PLUGINS) $(SCHEMA) $(CONFIG)
+	@bash ./run -e dev -p $(PLUGINS) -s $(SCHEMA) -c $(CONFIG)
 
 unit-test:
 	@rm -rf .eunit
