@@ -5,6 +5,7 @@ echo "etc /opt/hive"
 echo "priv /opt/hive"
 echo "plugins /opt/hive"
 echo "Makefile /opt/hive"
+echo "run /opt/hive"
 echo "rebar /opt/hive"
 echo "rebar.config /opt/hive"
 

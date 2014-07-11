@@ -50,6 +50,6 @@ deb-install:
 	@touch debian/install
 	@sh priv/make_install.sh > debian/install
 
-.PHONY: clean
+.PHONY: clean run
 clean:
 	@$(REBAR) clean
