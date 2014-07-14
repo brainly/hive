@@ -5,7 +5,7 @@
 -module(prep_hive).
 %% An utility script that generates additional erl flags.
 
--define(LAGER_FILE, "lager.config").
+-define(LAGER_FILE, "/tmp/lager.config").
 
 main([]) ->
     io:format("Usage: ./prep_hive path/to/config.json"),
