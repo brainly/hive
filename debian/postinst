@@ -23,7 +23,7 @@ function group_create {
 
 function user_create {
     user=$1
-    useradd -s $shell -M $user -u $uid -g $gid
+    useradd -s $shell $user -u $uid -g $gid -m
 }
 
 function user_delete {
