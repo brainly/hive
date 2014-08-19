@@ -72,12 +72,9 @@ join(Cids) ->
     join(?MAX_PRIVILEGE, Cids).
 
 join(Privilege, Cids) ->
-    join(Privilege, Cids, undefined).
-
-join(Privilege, Cids, ReplyTo) ->
     inc(?PUBSUB_REQUESTS),
     inc(?PUBSUB_JOIN),
-    gen_server:call(?MODULE, {join, Privilege, self(), Cids, ReplyTo}).
+    gen_server:call(?MODULE, {join, Privilege, self(), Cids}).
 
 subscribe(Sid, Cids) ->
     subscribe(Sid, Cids, ?MAX_PRIVILEGE).
@@ -85,18 +82,16 @@ subscribe(Sid, Cids) ->
 subscribe(Sid, Cids, Privilege) ->
     inc(?PUBSUB_REQUESTS),
     inc(?PUBSUB_SUBSCRIBE),
-    gen_server:call(?MODULE, {subscribe, Privilege, Sid, Cids}).
+    %% NOTE This is used by the PubSub API to convert Sid into a Pid.
+    trace(hive_router:route_event(Sid, {exec, {?MODULE, join, [Privilege, Cids]}})).
 
 leave(Cids) ->
     leave(?MAX_PRIVILEGE, Cids).
 
 leave(Privilege, Cids) ->
-    leave(Privilege, Cids, undefined).
-
-leave(Privilege, Cids, ReplyTo) ->
     inc(?PUBSUB_REQUESTS),
     inc(?PUBSUB_LEAVE),
-    gen_server:call(?MODULE, {leave, Privilege, self(), Cids, ReplyTo}).
+    gen_server:call(?MODULE, {leave, Privilege, self(), Cids}).
 
 unsubscribe(Sid, Cids) ->
     unsubscribe(Sid, Cids, ?MAX_PRIVILEGE).
@@ -104,7 +99,8 @@ unsubscribe(Sid, Cids) ->
 unsubscribe(Sid, Cids, Privilege) ->
     inc(?PUBSUB_REQUESTS),
     inc(?PUBSUB_UNSUBSCRIBE),
-    gen_server:call(?MODULE, {unsubscribe, Privilege, Sid, Cids}).
+    %% NOTE This is used by the PubSub API to convert Sid into a Pid.
+    trace(hive_router:route_event(Sid, {exec, {?MODULE, leave, [Privilege, Cids]}})).
 
 %% Gen Server handlers:
 handle_call(uptime, _From, State) ->
@@ -122,53 +118,47 @@ handle_call({status, Cid}, _From, State) ->
             {reply, {ok, Reply}, State}
     end;
 
-handle_call({subscribe, Privilege, Sid, Cids}, From, State) ->
-    {reply, trace(hive_router:route_event(Sid, {exec, {?MODULE, join, [Privilege, Cids, From]}})), State};
-
-handle_call({unsubscribe, Privilege, Sid, Cids}, From, State) ->
-    {reply, trace(hive_router:route_event(Sid, {exec, {?MODULE, leave, [Privilege, Cids, From]}})), State};
-
-handle_call({join, Privilege, Pid, Cids, From}, _From, State) ->
+handle_call({join, Privilege, Pid, Cids}, _From, State) ->
     case check_privilege(Privilege, Cids, State) of
         ok ->
-            {reply, reply(From,
-                          channel_fold(fun(Cid) ->
-                                               %% When there are no channels with a given Cid:
-                                               case new_channel(Cid, State) of
-                                                   {error, Error} ->
-                                                       {error, Error};
+            {reply, channel_fold(fun(Cid) ->
+                                         %% When there are no channels with a given Cid:
+                                         case new_channel(Cid, State) of
+                                             {error, Error} ->
+                                                 {error, Error};
 
-                                                   {_Priv, Channel} ->
-                                                       hive_pubsub_channel:subscribe(Channel, Pid)
-                                               end
-                                       end,
-                                       fun({_Priv, Channel}) ->
-                                               %% When there are channels with a given Cid:
-                                               hive_pubsub_channel:subscribe(Channel, Pid)
-                                       end,
-                                       lists:zip(Cids, get_channels(Cids, State#state.sub_channels)))), State};
+                                             {_Priv, Channel} ->
+                                                 hive_pubsub_channel:subscribe(Channel, Pid)
+                                         end
+                                 end,
+                                 fun({_Priv, Channel}) ->
+                                         %% When there are channels with a given Cid:
+                                         hive_pubsub_channel:subscribe(Channel, Pid)
+                                 end,
+                                 lists:zip(Cids, get_channels(Cids, State#state.sub_channels))),
+             State};
 
         {error, Error} ->
-            {reply, reply(From, {error, Error}), State}
+            {reply, {error, Error}, State}
     end;
 
-handle_call({leave, Privilege, Pid, Cids, From}, _From, State) ->
+handle_call({leave, Privilege, Pid, Cids}, _From, State) ->
     case check_privilege(Privilege, Cids, State) of
         ok ->
-            {reply, reply(From,
-                          channel_fold(fun(Cid) ->
-                                               %% When there are no channels with a given Cid there's nothing to do.
-                                               dbg_log("Tried unsubscribing an unknown channel: ~s", [Cid]),
-                                               ok
-                                       end,
-                                       fun(Channel) ->
-                                               %% When there are some channels with a given Cid:
-                                               hive_pubsub_channel:unsubscribe(Channel, Pid)
-                                       end,
-                                       lists:zip(Cids, get_channels(Cids, State#state.pub_channels)))), State};
+            {reply, channel_fold(fun(Cid) ->
+                                         %% When there are no channels with a given Cid there's nothing to do.
+                                         dbg_log("Tried unsubscribing an unknown channel: ~s", [Cid]),
+                                         ok
+                                 end,
+                                 fun(Channel) ->
+                                         %% When there are some channels with a given Cid:
+                                         hive_pubsub_channel:unsubscribe(Channel, Pid)
+                                 end,
+                                 lists:zip(Cids, get_channels(Cids, State#state.pub_channels))),
+             State};
 
         {error, Error} ->
-            {reply, reply(From, {error, Error}), State}
+            {reply, {error, Error}, State}
     end;
 
 handle_call({publish, Privilege, Cids, Events}, _From, State) ->
