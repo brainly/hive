@@ -5,7 +5,7 @@
 -export([start_link/1, init/1, terminate/2]).
 -export([handle_call/3, handle_cast/2, handle_info/2, code_change/3]).
 -export([publish/2, publish/3, subscribe/2, subscribe/3, unsubscribe/2, unsubscribe/3]).
--export([join/1, join/2, join/3, leave/1, leave/2, leave/3, status/1, uptime/0]).
+-export([join/1, join/2, leave/1, leave/2, status/1, uptime/0]).
 
 -include("hive_events.hrl").
 -include("hive_monitor.hrl").
@@ -66,7 +66,7 @@ publish(Cid, Events) ->
 publish(Privilege, Cid, Events) ->
     inc(?PUBSUB_REQUESTS),
     inc(?PUBSUB_PUBLISH),
-    hive_cluster:call(?MODULE, {publish, Privilege, Cid, Events}).
+    hive_cluster:cast(?MODULE, {publish, Privilege, Cid, Events}).
 
 join(Cids) ->
     join(?MAX_PRIVILEGE, Cids).
@@ -161,28 +161,30 @@ handle_call({leave, Privilege, Pid, Cids}, _From, State) ->
             {reply, {error, Error}, State}
     end;
 
-handle_call({publish, Privilege, Cids, Events}, _From, State) ->
-    incby(?PUBSUB_PUBLISHED, get_length(Events)),
-    case check_privilege(Privilege, Cids, State) of
-        ok ->
-            {reply, channel_fold(fun(Cid) ->
-                                         %% When there are no channels with a given Cid there's nothing to do.
-                                         dbg_log("Tried publishing to an unknown channel: ~s", [Cid]),
-                                         ok
-                                 end,
-                                 fun(Channel) ->
-                                         %% When there are some channels with a given Cid:
-                                         hive_pubsub_channel:publish(Channel, Events)
-                                 end,
-                                 lists:zip(Cids, get_channels(Cids, State#state.pub_channels))), State};
-
-        {error, Error} ->
-            {reply, {error, Error}, State}
-    end;
-
 handle_call(Action, _From, State) ->
     err_log("Unhandled Hive Pub-Sub call: ~p", [Action]),
     {noreply, State}.
+
+handle_cast({publish, Privilege, Cids, Events}, State) ->
+    incby(?PUBSUB_PUBLISHED, get_length(Events)),
+    case check_privilege(Privilege, Cids, State) of
+        ok ->
+            channel_fold(fun(Cid) ->
+                                 %% When there are no channels with a given Cid there's nothing to do.
+                                 dbg_log("Tried publishing to an unknown channel: ~s", [Cid]),
+                                 ok
+                         end,
+                         fun(Channel) ->
+                                 %% When there are some channels with a given Cid:
+                                 hive_pubsub_channel:publish(Channel, Events)
+                         end,
+                         lists:zip(Cids, get_channels(Cids, State#state.pub_channels))),
+            {noreply, State};
+
+        {error, _Error} ->
+            %% NOTE Error will be logged by check_privilege.
+            {noreply, State}
+    end;
 
 handle_cast({start_channel_sup, PoolSup}, State) ->
     case supervisor:start_child(PoolSup, ?CHANNEL_SUP_SPECS(hive_pubsub_channel_sup)) of
@@ -389,13 +391,6 @@ add_counters(Prefix) ->
                           init_counters(name(Counter, Prefix))
                   end,
                   ?PREFIX_COUNTERS).
-
-reply(undefined, Reply) ->
-    Reply;
-
-reply(From, Reply) ->
-    gen_server:reply(From, Reply),
-    Reply.
 
 error_fold(Fun, List) ->
     lists:foldl(fun (_, {error, Error}) -> {error, Error};
