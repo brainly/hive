@@ -129,7 +129,7 @@ info(Event, State) ->
     %% Some control messages used internally:
     inc(?HIVE_EVENTS),
     case Event of
-        %% Convenience raw exec.
+        %% FIXME This is an awful hack that will bite us in the ass someday.
         {exec, {Module, Function, Args}} ->
             case erlang:apply(Module, Function, Args) of
                 ok             -> {noreply, State};

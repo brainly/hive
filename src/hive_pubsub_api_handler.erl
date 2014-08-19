@@ -89,18 +89,9 @@ handle(Request, {<<"publish">>, Cid}) ->
                         {ok, _} ->
                             lager:info("Hive API Server publishing event on channel ~s: ~s", [Cid, Body]),
                             Message = hive_socketio_parser:encode(#sio_message{type = event, data = Body}),
-                            case hive_pubsub:publish([Cid], Message) of
-                                ok ->
-                                    Req3 = reply_no_log(<<"">>, Req2),
-                                    {ok, Req3, done};
-
-                                {error, {Code, Error}} ->
-                                    inc(?API_ERRORS),
-                                    inc(?API_PUBSUB_ERRORS),
-                                    lager:debug("Hive API Server encountered an error: ~p", [{Code, Error}]),
-                                    Req3 = reply_no_log(400, make_json(Code, Error), Req2),
-                                    {ok, Req3, error}
-                            end;
+                            hive_pubsub:publish([Cid], Message),
+                            Req3 = reply_no_log(<<"">>, Req2),
+                            {ok, Req3, done};
 
                         {error, {Code, Error}} ->
                             inc(?API_ERRORS),
