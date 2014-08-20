@@ -92,7 +92,8 @@ stop_pool(Pool) ->
 
 %% Internal TCP connector functions:
 remove(Pool, Worker) ->
-    gen_server:call(Pool, {remove, Worker}).
+    %% NOTE Infinite timeout as we need to make sure that it'll get removed from the queue.
+    gen_server:call(Pool, {remove, Worker}, infinity).
 
 add(Pool, Worker) ->
     gen_server:cast(Pool, {add, Worker}).
