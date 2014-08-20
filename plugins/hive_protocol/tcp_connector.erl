@@ -18,7 +18,7 @@
           froms_len,
           froms_limit,
           workers,
-          workers_queue
+          workers2kill
          }).
 
 -include("hive_monitor.hrl").
@@ -94,8 +94,7 @@ stop_pool(Pool) ->
 
 %% Internal TCP connector functions:
 remove(Pool, Worker) ->
-    %% NOTE Infinite timeout as we need to make sure that it'll get removed from the queue.
-    gen_server:call(Pool, {remove, Worker}, infinity).
+    gen_server:cast(Pool, {remove, Worker}).
 
 add(Pool, Worker) ->
     gen_server:cast(Pool, {add, Worker}).
@@ -112,7 +111,7 @@ init({PoolArgs, WorkerArgs}) ->
     State = #tcp_state{
                pool_name = PoolName,
                workers = [],
-               workers_queue = queue:new(),
+               workers2kill = [],
                froms = queue:new(),
                froms_len = 0,
                froms_limit = Size + Overflow
@@ -190,6 +189,7 @@ handle_call({transaction, Transaction}, From, State) ->
 
 
         {ok, Worker, NewState} ->
+            %% NOTE This is ungodly slow. It's not even funny.
             Reply = Transaction(Worker),
             case checkin_worker(Worker, NewState) of
                 {ok, NewestState} ->
@@ -203,9 +203,6 @@ handle_call({transaction, Transaction}, From, State) ->
             {reply, {error, Error}, State}
     end;
 
-handle_call({remove, Worker}, _From, State) ->
-    {reply, ok, remove_worker(Worker, State)};
-
 handle_call(stop, _From, State) ->
     {stop, shutdown, State};
 
@@ -213,6 +210,16 @@ handle_call(Message, _From, State) ->
     ?inc(?CONN_TCP_ERRORS),
     lager:warning("Unhandled Hive TCP Connector call: ~p", [Message]),
     {reply, ok, State}.
+
+handle_cast({remove, Worker}, State) ->
+    case lists:member(Worker, State#tcp_state.workers) of
+        %% NOTE We can remove directly...
+        true  -> tcp_worker:kill(Worker, shutdown),
+                 {noreply, remove_worker(Worker, State)};
+        %% NOTE ...or we need to schedule termination for later.
+        false -> W2K = [Worker | State#tcp_state.workers2kill],
+                 {noreply, State#tcp_state{workers2kill = W2K}}
+    end;
 
 handle_cast({checkin, Worker}, State) ->
     case checkin_worker(Worker, State) of
@@ -226,7 +233,7 @@ handle_cast({checkin, Worker}, State) ->
 
 handle_cast({add, Worker}, State) ->
     Workers = State#tcp_state.workers,
-    case checkin_worker(Worker, State#tcp_state{workers = [Worker | Workers]}) of
+    case checkin_worker(Worker, State) of
         {ok, NewState} ->
             {noreply, NewState};
 
@@ -265,36 +272,42 @@ code_change(_OldVsn, State, _Extra) ->
 
 %% Internal functions:
 checkout_worker(State) ->
-    Queue = State#tcp_state.workers_queue,
-    case queue:out(Queue) of
-        {{value, Worker}, NewQueue} ->
-            {ok, Worker, State#tcp_state{workers_queue = NewQueue}};
-
-        {empty, Queue} ->
-            retry_later
+    case State#tcp_state.workers of
+        [Worker | Workers] -> {ok, Worker, State#tcp_state{workers = Workers}};
+        []                 -> retry_later
     end.
 
 checkin_worker(Worker, State) ->
-    Froms = State#tcp_state.froms,
-    Len = State#tcp_state.froms_len,
-    case queue:out(Froms) of
-        %% NOTE We have an ongoing transaction which has to be carried out...
-        {{value, {From, Transaction}}, NewFroms} when is_function(Transaction, 1) ->
-            %% FIXME This shouldn't run here as it may clog the entire connector up.
-            %% NOTE This is currently unused as it is too slow.
-            gen_server:reply(From, Transaction(Worker)),
-            checkin_worker(Worker, State#tcp_state{froms = NewFroms, froms_len = Len - 1});
+    W2K = State#tcp_state.workers2kill,
+    case lists:member(Worker, W2K) of
+        true ->
+            %% NOTE We need to remove workers that requested termination while bussy...
+            tcp_worker:kill(Worker, shutdown),
+            {ok, remove_worker(Worker, State)};
 
-        %% NOTE ...or an ongoing checkout request...
-        {{value, {From, Timer}}, NewFroms} ->
-            erlang:cancel_timer(Timer),
-            gen_server:reply(From, {ok, Worker}),
-            {ok, State#tcp_state{froms = NewFroms, froms_len = Len - 1}};
+        false ->
+            %% NOTE ...or just use them right away.
+            Froms = State#tcp_state.froms,
+            Len = State#tcp_state.froms_len,
+            case queue:out(Froms) of
+                %% NOTE We have an ongoing transaction which has to be carried out...
+                {{value, {From, Transaction}}, NewFroms} when is_function(Transaction, 1) ->
+                    %% FIXME This shouldn't run here as it may clog the entire connector up.
+                    %% NOTE This is currently unused as it is too slow.
+                    gen_server:reply(From, Transaction(Worker)),
+                    checkin_worker(Worker, State#tcp_state{froms = NewFroms, froms_len = Len - 1});
 
-        %% NOTE ...or we're good to go.
-        {empty, Froms} ->
-            Queue = State#tcp_state.workers_queue,
-            {ok, State#tcp_state{workers_queue = queue:in(Worker, Queue)}}
+                %% NOTE ...or an ongoing checkout request...
+                {{value, {From, Timer}}, NewFroms} ->
+                    erlang:cancel_timer(Timer),
+                    gen_server:reply(From, {ok, Worker}),
+                    {ok, State#tcp_state{froms = NewFroms, froms_len = Len - 1}};
+
+                %% NOTE ...or we're good to go.
+                {empty, Froms} ->
+                    Workers = State#tcp_state.workers,
+                    {ok, State#tcp_state{workers = [Worker | Workers]}}
+            end
     end.
 
 stop_requests(State) ->
@@ -310,11 +323,12 @@ stop_requests(State) ->
 
 stop_workers(State) ->
     lists:foreach(fun(Worker) ->
-                          tcp_worker:stop(Worker)
+                          tcp_worker:kill(Worker, shutdown)
                   end,
                   State#tcp_state.workers).
 
 remove_worker(Worker, State) ->
-    NewQueue = queue:filter(fun(W) -> W =/= Worker end, State#tcp_state.workers_queue),
-    NewWorkers = lists:filter(fun(W) -> W =/= Worker end, State#tcp_state.workers),
-    State#tcp_state{workers = NewWorkers, workers_queue = NewQueue}.
+    Workers = State#tcp_state.workers,
+    W2K = State#tcp_state.workers2kill,
+    State#tcp_state{workers = lists:delete(Worker, Workers),
+                    workers2kill = lists:delete(Worker, W2K)}.
