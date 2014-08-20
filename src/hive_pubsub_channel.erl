@@ -4,7 +4,7 @@
 
 -export([start_link/3, init/1, terminate/2]).
 -export([handle_call/3, handle_cast/2, handle_info/2, code_change/3]).
--export([publish/2, subscribe/2, unsubscribe/2, status/1]).
+-export([publish/2, subscribe/2, unsubscribe/2, status/1, kill/2]).
 
 -record(state, {name, prefix, clients, monitors, timeout, timer}).
 
@@ -38,6 +38,9 @@ terminate(_Reason, State) ->
     ok.
 
 %% External functions:
+kill(Channel, Reason) ->
+    gen_server:call(Channel, {try_kill, Reason}).
+
 status(Channel) ->
     gen_server:call(Channel, status).
 
@@ -51,6 +54,12 @@ unsubscribe(Channel, Pid) ->
     gen_server:call(Channel, {unsubscribe, Pid}).
 
 %% Gen Server handlers:
+handle_call({try_kill, Reason}, _From, State) ->
+  case channel_size(State) of
+       0          -> {stop, Reason, ok, State};
+       _Otherwise -> {reply, {error, bussy}, State}
+  end;
+
 handle_call(status, _From, State) ->
     ?inc(?PUBSUB_CHANNEL_REQUESTS),
     ?inc(?PUBSUB_CHANNEL_STATUS),
@@ -96,7 +105,11 @@ handle_cast(Action, State) ->
     {noreply, State}.
 
 handle_info({timeout, _TimerRef, time_to_die}, State) ->
-    {stop, normal, State};
+    %% NOTE We can't stop right away without involving hive_pubsub since
+    %% NOTE this causes a race condition. Instead, we need to ask to be
+    %% NOTE removed from the channel list.
+    hive_pubsub:remove(self()),
+    {noreply, State};
 
 handle_info({'DOWN', _Ref, process, Pid, _Reason}, State) ->
     case remove_client(Pid, State, channel_size(State)) of

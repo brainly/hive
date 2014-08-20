@@ -5,7 +5,8 @@
 -export([start_link/1, init/1, terminate/2]).
 -export([handle_call/3, handle_cast/2, handle_info/2, code_change/3]).
 -export([publish/2, publish/3, subscribe/2, subscribe/3, unsubscribe/2, unsubscribe/3]).
--export([join/1, join/2, leave/1, leave/2, status/1, uptime/0]).
+-export([join/1, join/2, leave/1, leave/2, status/1]).
+-export([uptime/0, remove/1]).
 
 -include("hive_events.hrl").
 -include("hive_monitor.hrl").
@@ -51,6 +52,10 @@ terminate(Reason, State) ->
     ok.
 
 %% External functions:
+remove(Pid) ->
+    %% NOTE No need to increment any counters, since this is just a utility request.
+    gen_server:cast(?MODULE, {remove, Pid}).
+
 uptime() ->
     %% NOTE No need to increment PUBSUB_REQUESTS since this isn't really a request.
     gen_server:call(?MODULE, uptime).
@@ -201,6 +206,15 @@ handle_cast({start_channel_sup, PoolSup}, State) ->
             {stop, Error, State}
     end;
 
+handle_cast({remove, Pid}, State) ->
+    case hive_pubsub_channel:kill(Pid, shutdown) of
+        ok             -> remove_channels(Pid, State, shutdown),
+                          {noreply, State};
+        {error, bussy} -> {noreply, State}; %% NOTE Can't remove since the channel got a subscriber.
+        {error, Error} -> lager:debug("Hive Pub-Sub encountered an error: ~p.", [Error]),
+                          {noreply, State}
+    end;
+
 handle_cast(Action, State) ->
     err_log("Unhandled Hive Pub-Sub cast: ~p", [Action]),
     {noreply, State}.
@@ -299,7 +313,8 @@ remove_channels(Pid, State, Reason) ->
             dec(?PUBSUB_CHANNELS);
 
         [] ->
-            err_log("Tried removing an unknown channel: ~p", [Pid])
+            %% NOTE The channel probably requested its removal.
+            dbg_log("Tried removing an unknown channel: ~p", [Pid])
     end.
 
 prefix(Cid) ->
