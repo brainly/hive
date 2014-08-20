@@ -15,6 +15,7 @@
           listener,
           pool_name,
           froms,
+          froms_len,
           workers,
           workers_queue
          }).
@@ -108,7 +109,8 @@ init({PoolArgs, WorkerArgs}) ->
                pool_name = PoolName,
                workers = [],
                workers_queue = queue:new(),
-               froms = queue:new()
+               froms = queue:new(),
+               froms_len = 0
               },
     case ranch:start_listener(PoolName, Size,
                               ranch_tcp, [{port, Port}],
@@ -141,7 +143,8 @@ handle_call({checkout, Timeout}, From, State) ->
         retry_later ->
             Timer = erlang:start_timer(Timeout, self(), {checkout_timeout, From}),
             Queue = State#tcp_state.froms,
-            {noreply, State#tcp_state{froms = queue:in({From, Timer}, Queue)}};
+            Len = State#tcp_state.froms_len,
+            {noreply, State#tcp_state{froms = queue:in({From, Timer}, froms_len = Len + 1, Queue)}};
 
         {ok, Worker, NewState} ->
             {reply, {ok, Worker}, NewState};
@@ -154,7 +157,8 @@ handle_call({transaction, Transaction}, From, State) ->
     case checkout_worker(State) of
         retry_later ->
             Queue = State#tcp_state.froms,
-            {noreply, State#tcp_state{froms = queue:in({From, Transaction}, Queue)}};
+            Len = State#tcp_state.froms_len,
+            {noreply, State#tcp_state{froms = queue:in({From, Transaction}, froms_len = Len + 1, Queue)}};
 
         {ok, Worker, NewState} ->
             Reply = Transaction(Worker),
@@ -214,7 +218,8 @@ handle_info({timeout, _Ref, {checkout_timeout, From}}, State) ->
     lager:error(ErrorMsg),
     gen_server:reply(From, {error, {tcp_error, ErrorMsg}}),
     NewFroms = queue:filter(fun({F, _T}) -> F =/= From end, State#tcp_state.froms),
-    {noreply, State#tcp_state{froms = NewFroms}};
+    NewLen = queue:len(NewFroms),
+    {noreply, State#tcp_state{froms = NewFroms, froms_len = NewLen}};
 
 handle_info({'EXIT', Worker, _Reason}, State) ->
     {noreply, remove_worker(Worker, State)};
@@ -242,19 +247,20 @@ checkout_worker(State) ->
 
 checkin_worker(Worker, State) ->
     Froms = State#tcp_state.froms,
+    Len = State#tcp_state.froms_len,
     case queue:out(Froms) of
         %% NOTE We have an ongoing transaction which has to be carried out...
         {{value, {From, Transaction}}, NewFroms} when is_function(Transaction, 1) ->
             %% FIXME This shouldn't run here as it may clog the entire connector up.
             %% NOTE This is currently unused as it is too slow.
             gen_server:reply(From, Transaction(Worker)),
-            checkin_worker(Worker, State#tcp_state{froms = NewFroms});
+            checkin_worker(Worker, State#tcp_state{froms = NewFroms, froms_len = Len - 1});
 
         %% NOTE ...or an ongoing checkout request...
         {{value, {From, Timer}}, NewFroms} ->
             erlang:cancel_timer(Timer),
             gen_server:reply(From, {ok, Worker}),
-            {ok, State#tcp_state{froms = NewFroms}};
+            {ok, State#tcp_state{froms = NewFroms, froms_len = Len - 1}};
 
         %% NOTE ...or we're good to go.
         {empty, Froms} ->
