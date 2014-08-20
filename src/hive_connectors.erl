@@ -306,18 +306,15 @@ random_backoff(Fun) ->
                    hive_config:get(<<"connectors.backoff_time">>, 0),
                    Fun).
 
+random_backoff(1, _Timeout, Fun) ->
+    Fun();
+
 random_backoff(Times, Timeout, Fun) ->
-    ErrorMsg = hive_error_utils:format("Bad random backoff parameters: ~p times ~p ms",
-                                       [Times, Timeout]),
-    random_backoff(Times, {error, {connectors_error, ErrorMsg}}, Timeout, Fun).
-
-random_backoff(0, Ret, _Timeout, _Fun) ->
-    Ret;
-
-random_backoff(Times, _Ret, Timeout, Fun) ->
     case Fun() of
-        Ret = {error, _Error} -> RandomTimeout = random:uniform(Timeout),
-                                 timer:sleep(RandomTimeout),
-                                 random_backoff(Times - 1, Ret, Fun);
-        Otherwise             -> Otherwise
+        Ret = {error, Error} -> inc(?CONNECTORS_ERRORS),
+                                lager:debug("Hive Connectors Manager encountered an error and will retry: ~p", [Error]),
+                                RandomTimeout = random:uniform(Timeout),
+                                timer:sleep(RandomTimeout),
+                                random_backoff(Times - 1, Ret, Fun);
+        Otherwise            -> Otherwise
     end.
