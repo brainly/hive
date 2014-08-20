@@ -16,6 +16,7 @@
           pool_name,
           froms,
           froms_len,
+          froms_limit,
           workers,
           workers_queue
          }).
@@ -104,13 +105,17 @@ init({PoolArgs, WorkerArgs}) ->
     process_flag(trap_exit, true), %% NOTE In order to clean up properly.
     PoolName = proplists:get_value(pool_name, WorkerArgs),
     Size = proplists:get_value(<<"size">>, PoolArgs),
+    %% NOTE This won't spawn more connections, but rather will increase
+    %% NOTE the maximal request queue size.
+    Overflow = proplists:get_value(<<"overflow">>, PoolArgs),
     Port = proplists:get_value(<<"port">>, WorkerArgs),
     State = #tcp_state{
                pool_name = PoolName,
                workers = [],
                workers_queue = queue:new(),
                froms = queue:new(),
-               froms_len = 0
+               froms_len = 0,
+               froms_limit = Size + Overflow
               },
     case ranch:start_listener(PoolName, Size,
                               ranch_tcp, [{port, Port}],
@@ -144,7 +149,18 @@ handle_call({checkout, Timeout}, From, State) ->
             Timer = erlang:start_timer(Timeout, self(), {checkout_timeout, From}),
             Queue = State#tcp_state.froms,
             Len = State#tcp_state.froms_len,
-            {noreply, State#tcp_state{froms = queue:in({From, Timer}, froms_len = Len + 1, Queue)}};
+            Limit = State#tcp_state.froms_limit,
+            case Len of
+                Limit ->
+                    ?inc(?CONN_TCP_ERRORS),
+                    ErrorMsg = hive_error_utils:format("Hive TCP Connector ~s's request queue is full.",
+                                                       [State#tcp_state.pool_name]),
+                    lager:error(ErrorMsg),
+                    {reply, {error, {tcp_error, ErrorMsg}}, State};
+
+                _Otherwise ->
+                    {noreply, State#tcp_state{froms = queue:in({From, Timer}, Queue), froms_len = Len + 1}}
+            end;
 
         {ok, Worker, NewState} ->
             {reply, {ok, Worker}, NewState};
@@ -158,7 +174,20 @@ handle_call({transaction, Transaction}, From, State) ->
         retry_later ->
             Queue = State#tcp_state.froms,
             Len = State#tcp_state.froms_len,
-            {noreply, State#tcp_state{froms = queue:in({From, Transaction}, froms_len = Len + 1, Queue)}};
+            Limit = State#tcp_state.froms_limit,
+            case Len of
+                Limit ->
+                    ?inc(?CONN_TCP_ERRORS),
+                    ErrorMsg = hive_error_utils:format("Hive TCP Connector ~s's request queue is full.",
+                                                       [State#tcp_state.pool_name]),
+                    lager:error(ErrorMsg),
+                    {reply, {error, {tcp_error, ErrorMsg}}, State};
+
+                _Otherwise ->
+                    {noreply, State#tcp_state{froms = queue:in({From, Transaction}, Queue), froms_len = Len + 1}}
+            end;
+
+
 
         {ok, Worker, NewState} ->
             Reply = Transaction(Worker),
