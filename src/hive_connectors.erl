@@ -33,6 +33,10 @@ start_link(PoolSup) ->
 init(PoolSup) ->
     RTimeout = hive_config:get(<<"connectors.rent_timeout">>),
     gen_server:cast(?MODULE, {start_connectors_sup, PoolSup}),
+    %% NOTE Random seed is used by random backoff when performing various requests.
+    %% NOTE Random backoff is used in order to inhibit unneccessary client restarts
+    %% NOTE due to random pool worker errors.
+    random:seed(erlang:now()),
     {ok, #state{rent_timeout = RTimeout, pools = ets:new(?MODULE, [])}}.
 
 terminate(Reason, State) ->
@@ -52,7 +56,7 @@ do_safe({connector, PoolPid, ControlerModule}, Transaction) ->
     inc(?CONNECTORS_REQUESTS),
     inc(?CONNECTORS_DO_SAFE),
     %% NOTE Delegates work to the pool returned by ?MODULE:use(PoolName)
-    ControlerModule:transaction(PoolPid, Transaction);
+    random_backoff(fun() -> ControlerModule:transaction(PoolPid, Transaction) end);
 
 do_safe(PoolName, Transaction) ->
     do_safe(use(PoolName), Transaction).
@@ -81,7 +85,7 @@ rent({connector, PoolPid, ControlerModule}) ->
     inc(?CONNECTORS_RENT),
     RTimeout = hive_config:get(<<"connectors.rent_timeout">>), %% FIXME This could be faster...
     %% NOTE Delegates work to the pool returned by ?MODULE:use(PoolName)
-    ControlerModule:checkout(PoolPid, RTimeout);
+    random_backoff(fun() -> ControlerModule:checkout(PoolPid, RTimeout) end);
 
 rent(PoolName) ->
     rent(use(PoolName)).
@@ -90,7 +94,7 @@ return({connector, PoolPid, ControlerModule}, Worker) ->
     inc(?CONNECTORS_REQUESTS),
     inc(?CONNECTORS_RETURN),
     %% NOTE Delegates work to the pool returned by ?MODULE:use(PoolName)
-    ControlerModule:checkin(PoolPid, Worker);
+    random_backoff(fun() -> ControlerModule:checkin(PoolPid, Worker) end);
 
 return(PoolName, Worker) ->
     return(use(PoolName), Worker).
@@ -296,3 +300,24 @@ stop_pool(PoolName, State) ->
     Pool = lookup(PoolName, State),
     ControlerModule = controler_module(Pool, State),
     ControlerModule:stop(Pool).
+
+random_backoff(Fun) ->
+    random_backoff(hive_config:get(<<"connectors.backoff_num">>, 1),
+                   hive_config:get(<<"connectors.backoff_time">>, 0),
+                   Fun).
+
+random_backoff(Times, Timeout, Fun) ->
+    ErrorMsg = hive_error_utils:format("Bad random backoff parameters: ~p times ~p ms",
+                                       [Times, Timeout]),
+    random_backoff(Times, {error, {connectors_error, ErrorMsg}}, Timeout, Fun).
+
+random_backoff(0, Ret, _Timeout, _Fun) ->
+    Ret;
+
+random_backoff(Times, _Ret, Timeout, Fun) ->
+    case Fun() of
+        Ret = {error, _Error} -> RandomTimeout = random:uniform(Timeout),
+                                 timer:sleep(RandomTimeout),
+                                 random_backoff(Times - 1, Ret, Fun);
+        Otherwise             -> Otherwise
+    end.
