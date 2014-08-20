@@ -2513,6 +2513,131 @@ Example declaration:
   ]
 #+end_src
 
+*** =pubsub.publish=
+Publishes an External Event to a list of Hive PubSub channel IDs. Example event:
+
+#+begin_src javascript
+{
+    "action" : "publish",
+    "args" : {
+        "event" : "an External Event to publish",
+        "cids" : {
+            "prefix_1" : [1, 2, ...],
+            ...
+        }
+    }
+}
+#+end_src
+
+#+latex: \noindent
+Example declaration:
+#+begin_src javascript
+  "publish" : [
+      {
+          "action" : "pubsub.publish",
+          "args" : "public"
+      }
+  ]
+#+end_src
+
+*** =pubsub.publish_raw=
+Publishes a raw External Event to a list of Hive PubSub channels. Example event:
+
+#+begin_src javascript
+{
+    "action" : "publish_raw",
+    "args" : {
+        "event" : "an External Event to publish",
+        "cids" : {
+            "prefix_1" : [1, 2, ...],
+            ...
+        }
+    }
+}
+#+end_src
+
+#+latex: \noindent
+Example declaration:
+#+begin_src javascript
+  "publish_raw" : [
+      {
+          "action" : "pubsub.publish_raw",
+          "args" : "public"
+      }
+  ]
+#+end_src
+
+*** =pubsub.subscribe=
+Subscribes the Client to a list of Hive PubSub channels. Example event:
+
+#+begin_src javascript
+{
+    "action" : "subscribe",
+    "args" : {
+        "prefix_1" : [1, 2, ...],
+        ...
+    }
+}
+#+end_src
+
+#+latex: \noindent
+Example declaration:
+#+begin_src javascript
+  "subscribe" : [
+      {
+          "action" : "pubsub.subscribe",
+          "args" : "public"
+      }
+  ]
+#+end_src
+*** =pubsub.unsubscribe=
+Unsubscribes the Client from a list of Hive PubSub channels. Example event:
+
+#+begin_src javascript
+{
+    "action" : "unsubscribe",
+    "args" : {
+        "prefix_1" : [1, 2, ...],
+        ...
+    }
+}
+#+end_src
+
+#+latex: \noindent
+Example declaration:
+#+begin_src javascript
+  "unsubscribe" : [
+      {
+          "action" : "pubsub.unsubscribe",
+          "args" : "public"
+      }
+  ]
+#+end_src
+
+*** =pubsub.resubscribe=
+Resubscribes the Client to a list of Hive PubSub channels. Example event:
+
+#+begin_src javascript
+{
+    "action" : "resubscribe",
+    "args" : {
+        "prefix_1" : [1, 2, ...],
+        ...
+    }
+}
+#+end_src
+
+#+latex: \noindent
+Example declaration:
+#+begin_src javascript
+  "resubscribe" : [
+      {
+          "action" : "pubsub.resubscribe",
+          "args" : "public"
+      }
+  ]
+#+end_src
+
 ** Service Connectors
 # <<<ref-connectors>>>
 Currently available Hive Connector pool types and their arguments are described below:
