@@ -245,6 +245,7 @@ checkin_worker(Worker, State) ->
         %% NOTE We have an ongoing transaction which has to be carried out...
         {{value, {From, Transaction}}, NewFroms} when is_function(Transaction, 1) ->
             %% FIXME This shouldn't run here as it may clog the entire connector up.
+            %% NOTE This is currently unused as it is too slow.
             gen_server:reply(From, Transaction(Worker)),
             checkin_worker(Worker, State#tcp_state{froms = NewFroms});
 
