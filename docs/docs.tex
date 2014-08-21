@@ -1,4 +1,4 @@
-% Created 2014-08-20 śro 12:41
+% Created 2014-08-19 wto 16:04
 \documentclass[a4paper]{article}
 \usepackage{fontspec}
 \usepackage{fixltx2e}
@@ -666,23 +666,12 @@ Required parameters:
 \end{itemize}
 
 \noindent
-Optional parameters:
-
-\begin{itemize}
-\item \texttt{connectors.backoff\_num} - the number of times a client will try various Hive Connectors requests in case of an error. Has to be \textbf{a non-negative integer} greater than zero. Defaults to 1.
-\item \texttt{connectors.backoff\_time} - the maximal backoff timeout in \textbf{milliseconds}. Has to be \textbf{a non-negative integer}. The concrete backoff timeout will be uniformly selected in the range [0, \texttt{connectors.backoff\_time} ]. Defaults to 0.
-\end{itemize}
-
-\noindent
 Example values:
 
 
 \begin{minted}[]{javascript}
 "connectors" : {
     "rent_timeout" : 5000,
-    "backoff_num" : 3,
-    "backoff_time" : 1000,
-
     "pools" : {
         "database" : {
             "connector" : "connector.redis",
