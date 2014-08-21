@@ -552,11 +552,20 @@ Required parameters:
   + =connector= - the name of the connector plugin to use for this pool. It has to be *a string*. The available Connector pools will be described in [[ref-connectors][a later section]].
 
 #+latex: \noindent
+Optional parameters:
+- =connectors.backoff_num= - the number of times a client will try various Hive Connectors requests in case of an error. Has to be *a non-negative integer* greater than zero. Defaults to 1.
+
+- =connectors.backoff_time= - the maximal backoff timeout in *milliseconds*. Has to be *a non-negative integer*. The concrete backoff timeout will be uniformly selected in the range [0, =connectors.backoff_time= ]. Defaults to 0.
+
+#+latex: \noindent
 Example values:
 
 #+begin_src javascript
   "connectors" : {
       "rent_timeout" : 5000,
+      "backoff_num" : 3,
+      "backoff_time" : 1000,
+
       "pools" : {
           "database" : {
               "connector" : "connector.redis",
