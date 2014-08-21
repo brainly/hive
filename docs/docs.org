@@ -2522,7 +2522,7 @@ Example declaration:
   ]
 #+end_src
 
-*** =pubsub.publish=
+*** =action.pubsub.publish=
 Publishes an External Event to a list of Hive PubSub channel IDs. Example event:
 
 #+begin_src javascript
@@ -2543,13 +2543,13 @@ Example declaration:
 #+begin_src javascript
   "publish" : [
       {
-          "action" : "pubsub.publish",
+          "action" : "action.pubsub.publish",
           "args" : "public"
       }
   ]
 #+end_src
 
-*** =pubsub.publish_raw=
+*** =action.pubsub.publish_raw=
 Publishes a raw External Event to a list of Hive PubSub channels. Example event:
 
 #+begin_src javascript
@@ -2570,13 +2570,13 @@ Example declaration:
 #+begin_src javascript
   "publish_raw" : [
       {
-          "action" : "pubsub.publish_raw",
+          "action" : "action.pubsub.publish_raw",
           "args" : "public"
       }
   ]
 #+end_src
 
-*** =pubsub.subscribe=
+*** =action.pubsub.subscribe=
 Subscribes the Client to a list of Hive PubSub channels. Example event:
 
 #+begin_src javascript
@@ -2594,12 +2594,12 @@ Example declaration:
 #+begin_src javascript
   "subscribe" : [
       {
-          "action" : "pubsub.subscribe",
+          "action" : "action.pubsub.subscribe",
           "args" : "public"
       }
   ]
 #+end_src
-*** =pubsub.unsubscribe=
+*** =action.pubsub.unsubscribe=
 Unsubscribes the Client from a list of Hive PubSub channels. Example event:
 
 #+begin_src javascript
@@ -2617,13 +2617,13 @@ Example declaration:
 #+begin_src javascript
   "unsubscribe" : [
       {
-          "action" : "pubsub.unsubscribe",
+          "action" : "action.pubsub.unsubscribe",
           "args" : "public"
       }
   ]
 #+end_src
 
-*** =pubsub.resubscribe=
+*** =action.pubsub.resubscribe=
 Resubscribes the Client to a list of Hive PubSub channels. Example event:
 
 #+begin_src javascript
@@ -2641,7 +2641,7 @@ Example declaration:
 #+begin_src javascript
   "resubscribe" : [
       {
-          "action" : "pubsub.resubscribe",
+          "action" : "action.pubsub.resubscribe",
           "args" : "public"
       }
   ]

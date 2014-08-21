@@ -1,4 +1,4 @@
-% Created 2014-08-20 śro 12:41
+% Created 2014-08-21 czw 12:58
 \documentclass[a4paper]{article}
 \usepackage{fontspec}
 \usepackage{fixltx2e}
@@ -666,23 +666,12 @@ Required parameters:
 \end{itemize}
 
 \noindent
-Optional parameters:
-
-\begin{itemize}
-\item \texttt{connectors.backoff\_num} - the number of times a client will try various Hive Connectors requests in case of an error. Has to be \textbf{a non-negative integer} greater than zero. Defaults to 1.
-\item \texttt{connectors.backoff\_time} - the maximal backoff timeout in \textbf{milliseconds}. Has to be \textbf{a non-negative integer}. The concrete backoff timeout will be uniformly selected in the range [0, \texttt{connectors.backoff\_time} ]. Defaults to 0.
-\end{itemize}
-
-\noindent
 Example values:
 
 
 \begin{minted}[]{javascript}
 "connectors" : {
     "rent_timeout" : 5000,
-    "backoff_num" : 3,
-    "backoff_time" : 1000,
-
     "pools" : {
         "database" : {
             "connector" : "connector.redis",
@@ -2967,7 +2956,7 @@ Example declaration:
     }
 ]
 \end{minted}
-\subsubsection{\texttt{pubsub.publish}}
+\subsubsection{\texttt{action.pubsub.publish}}
 \label{sec-9-3-10}
 
 Publishes an External Event to a list of Hive PubSub channel IDs. Example event:
@@ -2995,12 +2984,12 @@ Example declaration:
 \begin{minted}[]{javascript}
 "publish" : [
     {
-        "action" : "pubsub.publish",
+        "action" : "action.pubsub.publish",
         "args" : "public"
     }
 ]
 \end{minted}
-\subsubsection{\texttt{pubsub.publish\_raw}}
+\subsubsection{\texttt{action.pubsub.publish\_raw}}
 \label{sec-9-3-11}
 
 Publishes a raw External Event to a list of Hive PubSub channels. Example event:
@@ -3028,12 +3017,12 @@ Example declaration:
 \begin{minted}[]{javascript}
 "publish_raw" : [
     {
-        "action" : "pubsub.publish_raw",
+        "action" : "action.pubsub.publish_raw",
         "args" : "public"
     }
 ]
 \end{minted}
-\subsubsection{\texttt{pubsub.subscribe}}
+\subsubsection{\texttt{action.pubsub.subscribe}}
 \label{sec-9-3-12}
 
 Subscribes the Client to a list of Hive PubSub channels. Example event:
@@ -3058,12 +3047,12 @@ Example declaration:
 \begin{minted}[]{javascript}
 "subscribe" : [
     {
-        "action" : "pubsub.subscribe",
+        "action" : "action.pubsub.subscribe",
         "args" : "public"
     }
 ]
 \end{minted}
-\subsubsection{\texttt{pubsub.unsubscribe}}
+\subsubsection{\texttt{action.pubsub.unsubscribe}}
 \label{sec-9-3-13}
 
 Unsubscribes the Client from a list of Hive PubSub channels. Example event:
@@ -3088,12 +3077,12 @@ Example declaration:
 \begin{minted}[]{javascript}
 "unsubscribe" : [
     {
-        "action" : "pubsub.unsubscribe",
+        "action" : "action.pubsub.unsubscribe",
         "args" : "public"
     }
 ]
 \end{minted}
-\subsubsection{\texttt{pubsub.resubscribe}}
+\subsubsection{\texttt{action.pubsub.resubscribe}}
 \label{sec-9-3-14}
 
 Resubscribes the Client to a list of Hive PubSub channels. Example event:
@@ -3118,7 +3107,7 @@ Example declaration:
 \begin{minted}[]{javascript}
 "resubscribe" : [
     {
-        "action" : "pubsub.resubscribe",
+        "action" : "action.pubsub.resubscribe",
         "args" : "public"
     }
 ]

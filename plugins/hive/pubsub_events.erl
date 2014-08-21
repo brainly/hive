@@ -9,11 +9,11 @@
 
 %% External functions:
 load() ->
-    {ok, [{<<"pubsub.publish">>, fun init_publish/1},
-          {<<"pubsub.publish_raw">>, fun init_publish_raw/1},
-          {<<"pubsub.subscribe">>, fun init_subscribe/1},
-          {<<"pubsub.unsubscribe">>, fun init_unsubscribe/1},
-          {<<"pubsub.resubscribe">>, fun init_resubscribe/1}], undefined}.
+    {ok, [{<<"action.pubsub.publish">>, fun init_publish/1},
+          {<<"action.pubsub.publish_raw">>, fun init_publish_raw/1},
+          {<<"action.pubsub.subscribe">>, fun init_subscribe/1},
+          {<<"action.pubsub.unsubscribe">>, fun init_unsubscribe/1},
+          {<<"action.pubsub.resubscribe">>, fun init_resubscribe/1}], undefined}.
 
 unload(_State) ->
     ok.
