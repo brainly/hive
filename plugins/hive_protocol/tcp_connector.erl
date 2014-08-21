@@ -15,8 +15,6 @@
           listener,
           pool_name,
           froms,
-          froms_len,
-          froms_limit,
           workers,
           workers_queue
          }).
@@ -94,8 +92,7 @@ stop_pool(Pool) ->
 
 %% Internal TCP connector functions:
 remove(Pool, Worker) ->
-    %% NOTE Infinite timeout as we need to make sure that it'll get removed from the queue.
-    gen_server:call(Pool, {remove, Worker}, infinity).
+    gen_server:call(Pool, {remove, Worker}).
 
 add(Pool, Worker) ->
     gen_server:cast(Pool, {add, Worker}).
@@ -105,17 +102,12 @@ init({PoolArgs, WorkerArgs}) ->
     process_flag(trap_exit, true), %% NOTE In order to clean up properly.
     PoolName = proplists:get_value(pool_name, WorkerArgs),
     Size = proplists:get_value(<<"size">>, PoolArgs),
-    %% NOTE This won't spawn more connections, but rather will increase
-    %% NOTE the maximal request queue size.
-    Overflow = proplists:get_value(<<"overflow">>, PoolArgs),
     Port = proplists:get_value(<<"port">>, WorkerArgs),
     State = #tcp_state{
                pool_name = PoolName,
                workers = [],
                workers_queue = queue:new(),
-               froms = queue:new(),
-               froms_len = 0,
-               froms_limit = Size + Overflow
+               froms = queue:new()
               },
     case ranch:start_listener(PoolName, Size,
                               ranch_tcp, [{port, Port}],
@@ -148,19 +140,7 @@ handle_call({checkout, Timeout}, From, State) ->
         retry_later ->
             Timer = erlang:start_timer(Timeout, self(), {checkout_timeout, From}),
             Queue = State#tcp_state.froms,
-            Len = State#tcp_state.froms_len,
-            Limit = State#tcp_state.froms_limit,
-            case Len of
-                Limit ->
-                    ?inc(?CONN_TCP_ERRORS),
-                    ErrorMsg = hive_error_utils:format("Hive TCP Connector ~s's request queue is full.",
-                                                       [State#tcp_state.pool_name]),
-                    lager:error(ErrorMsg),
-                    {reply, {error, {tcp_error, ErrorMsg}}, State};
-
-                _Otherwise ->
-                    {noreply, State#tcp_state{froms = queue:in({From, Timer}, Queue), froms_len = Len + 1}}
-            end;
+            {noreply, State#tcp_state{froms = queue:in({From, Timer}, Queue)}};
 
         {ok, Worker, NewState} ->
             {reply, {ok, Worker}, NewState};
@@ -173,21 +153,7 @@ handle_call({transaction, Transaction}, From, State) ->
     case checkout_worker(State) of
         retry_later ->
             Queue = State#tcp_state.froms,
-            Len = State#tcp_state.froms_len,
-            Limit = State#tcp_state.froms_limit,
-            case Len of
-                Limit ->
-                    ?inc(?CONN_TCP_ERRORS),
-                    ErrorMsg = hive_error_utils:format("Hive TCP Connector ~s's request queue is full.",
-                                                       [State#tcp_state.pool_name]),
-                    lager:error(ErrorMsg),
-                    {reply, {error, {tcp_error, ErrorMsg}}, State};
-
-                _Otherwise ->
-                    {noreply, State#tcp_state{froms = queue:in({From, Transaction}, Queue), froms_len = Len + 1}}
-            end;
-
-
+            {noreply, State#tcp_state{froms = queue:in({From, Transaction}, Queue)}};
 
         {ok, Worker, NewState} ->
             Reply = Transaction(Worker),
@@ -247,8 +213,7 @@ handle_info({timeout, _Ref, {checkout_timeout, From}}, State) ->
     lager:error(ErrorMsg),
     gen_server:reply(From, {error, {tcp_error, ErrorMsg}}),
     NewFroms = queue:filter(fun({F, _T}) -> F =/= From end, State#tcp_state.froms),
-    NewLen = queue:len(NewFroms),
-    {noreply, State#tcp_state{froms = NewFroms, froms_len = NewLen}};
+    {noreply, State#tcp_state{froms = NewFroms}};
 
 handle_info({'EXIT', Worker, _Reason}, State) ->
     {noreply, remove_worker(Worker, State)};
@@ -276,20 +241,18 @@ checkout_worker(State) ->
 
 checkin_worker(Worker, State) ->
     Froms = State#tcp_state.froms,
-    Len = State#tcp_state.froms_len,
     case queue:out(Froms) of
         %% NOTE We have an ongoing transaction which has to be carried out...
         {{value, {From, Transaction}}, NewFroms} when is_function(Transaction, 1) ->
             %% FIXME This shouldn't run here as it may clog the entire connector up.
-            %% NOTE This is currently unused as it is too slow.
             gen_server:reply(From, Transaction(Worker)),
-            checkin_worker(Worker, State#tcp_state{froms = NewFroms, froms_len = Len - 1});
+            checkin_worker(Worker, State#tcp_state{froms = NewFroms});
 
         %% NOTE ...or an ongoing checkout request...
         {{value, {From, Timer}}, NewFroms} ->
             erlang:cancel_timer(Timer),
             gen_server:reply(From, {ok, Worker}),
-            {ok, State#tcp_state{froms = NewFroms, froms_len = Len - 1}};
+            {ok, State#tcp_state{froms = NewFroms}};
 
         %% NOTE ...or we're good to go.
         {empty, Froms} ->
