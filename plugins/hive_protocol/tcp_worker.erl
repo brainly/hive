@@ -5,7 +5,7 @@
 
 -export([start_link/4, init/1]).
 -export([handle_call/3, handle_cast/2, handle_info/2, terminate/2, code_change/3]).
--export([stop/1]).
+-export([kill/2]).
 
 -include("hive_socketio.hrl").
 -include("hive_connectors.hrl").
@@ -50,12 +50,15 @@ terminate(_Reason, State) ->
     Transport:close(Data#data.socket).
 
 %% External functions:
-stop(Client) ->
-    gen_server:cast(Client, stop).
+kill(Client, Reason) ->
+    gen_server:call(Client, {kill, Reason}).
 
 %% NOTE The rest of the API is conformant to the Hive Protocol.
 
 %% Gen Server handlers:
+handle_call({kill, Reason}, _From, State) ->
+    {stop, Reason, ok, State};
+
 handle_call({get, Endpoint}, _From, State) ->
     ?inc(?CONN_TCP_REQUESTS),
     ?inc(?CONN_TCP_RECV),
@@ -98,7 +101,6 @@ handle_cast(Msg, State) ->
     {noreply, State}.
 
 handle_info({timeout, _Ref, stop}, State) ->
-    stop(self()),
     remove_self(State),
     {noreply, cancel_timer(State)};
 
@@ -145,6 +147,7 @@ recv(Endpoint, State) ->
 do_recv(Transport, Socket, Timeout) ->
     case Transport:recv(Socket, 0, Timeout) of
         {ok, Packet} ->
+            %% NOTE If by any chance a client receives malformed message here it should plainly die.
             {Len, Data} = hive_socketio_parser:msg_length(Packet),
             case byte_size(Data) of
                 Len ->
@@ -184,8 +187,7 @@ send(Endpoint, Message, State) ->
     end.
 
 maby_die(closed, State) ->
-    remove_self(State),
-    stop(self());
+    remove_self(State);
 
 maby_die(_Otherwise, _State) ->
     no_thanks.
